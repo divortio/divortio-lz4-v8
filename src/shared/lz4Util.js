@@ -3,6 +3,7 @@
  * Common type checking and coercion utility.
  */
 
+const encoder = new TextEncoder();
 
 /**
  * Ensures the input is a Uint8Array.
@@ -12,7 +13,7 @@
  */
 export function ensureBuffer(input) {
     if (input instanceof Uint8Array) return input;
-    if (typeof input === 'string') return new TextEncoder().encode(input);
+    if (typeof input === 'string') return new encoder.encode(input);
     if (ArrayBuffer.isView(input)) return new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
     if (input instanceof ArrayBuffer) return new Uint8Array(input);
     if (Array.isArray(input)) return new Uint8Array(input);
@@ -22,7 +23,7 @@ export function ensureBuffer(input) {
         try {
             const json = JSON.stringify(input);
             if (json !== undefined) {
-                return new TextEncoder().encode(json);
+                return encoder.encode(json);
             }
         } catch (e) {
             // If serialization fails, fall through to TypeError

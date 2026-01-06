@@ -29,7 +29,11 @@ const FLG_BLOCK_INDEPENDENCE_MASK = 0x20;
 const FLG_CONTENT_CHECKSUM_MASK = 0x04;
 const FLG_DICT_ID_MASK = 0x01;
 
-// Block Sizes Map (Inlined for speed)
+
+/**
+ *
+ * @type {{4: number, 5: number, 6: number, 7: number}}
+ */
 const BLOCK_MAX_SIZES = {
     4: 65536,
     5: 262144,

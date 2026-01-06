@@ -29,41 +29,56 @@ export class XXHash32 {
 
     /**
      * Updates the hash state with a new chunk of data.
-     * @param {Uint8Array} input
+     * Supports range selection (offset/length).
+     *
+     * @param {Uint8Array} input - Data buffer.
+     * @param {number} [bufferOffset=0] - Start offset.
+     * @param {number} [bufferLength] - Length to read.
      */
-    update(input) {
-        let p = 0 | 0;
-        const len = input.length | 0;
+    update(input, bufferOffset = 0, bufferLength) {
+        let p = bufferOffset | 0;
+        const len = (bufferLength === undefined ? (input.length - p) : bufferLength) | 0;
+        const bEnd = (p + len) | 0;
+
         this.totalLen = (this.totalLen + len) | 0;
 
         // 1. Fill internal memory if we have leftovers
         if ((this.memSize + len) < 16) {
-            this.memory.set(input, this.memSize);
+            // Simple loop is faster than creating a subarray for small writes
+            for (let i = 0; i < len; i++) {
+                this.memory[this.memSize + i] = input[p + i];
+            }
             this.memSize = (this.memSize + len) | 0;
             return;
         }
 
         if (this.memSize > 0) {
             const sliceSize = (16 - this.memSize) | 0;
-            this.memory.set(input.subarray(0, sliceSize), this.memSize);
+
+            for (let i = 0; i < sliceSize; i++) {
+                this.memory[this.memSize + i] = input[p + i];
+            }
 
             this._processStripe(this.memory, 0);
 
-            p = sliceSize;
+            p = (p + sliceSize) | 0;
             this.memSize = 0;
         }
 
         // 2. Process full 16-byte stripes from input
-        const limit = (len - 16) | 0;
+        const limit = (bEnd - 16) | 0;
         while (p <= limit) {
             this._processStripe(input, p);
             p = (p + 16) | 0;
         }
 
         // 3. Buffer remaining bytes
-        if (p < len) {
-            this.memory.set(input.subarray(p, len), 0);
-            this.memSize = (len - p) | 0;
+        if (p < bEnd) {
+            const remaining = (bEnd - p) | 0;
+            for (let i = 0; i < remaining; i++) {
+                this.memory[i] = input[p + i];
+            }
+            this.memSize = remaining;
         }
     }
 

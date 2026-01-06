@@ -3,7 +3,7 @@
  * Stateless (One-Shot) implementation of xxHash32.
  * Optimized for V8 JIT with strict 32-bit integer math.
  *
- * Usage: const hash = xxHash32(buffer, seed);
+ * Usage: const hash = xxHash32(buffer, seed, offset, length);
  */
 
 const PRIME32_1 = 2654435761 | 0;
@@ -14,18 +14,25 @@ const PRIME32_5 =  374761393 | 0;
 
 /**
  * Calculates the 32-bit hash of a buffer in a single pass.
+ * Supports range selection (offset/length) to avoid allocating subarrays.
+ *
  * @param {Uint8Array} input - The data buffer.
  * @param {number} [seed=0] - The seed value.
+ * @param {number} [bufferOffset=0] - Start offset in the buffer.
+ * @param {number} [bufferLength] - Length of data to hash (defaults to rest of buffer).
  * @returns {number} The 32-bit unsigned hash.
  */
-export function xxHash32(input, seed = 0) {
+export function xxHash32(input, seed = 0, bufferOffset = 0, bufferLength) {
     seed = seed | 0;
-    const len = input.length | 0;
+    const offset = bufferOffset | 0;
+    const len = (bufferLength === undefined ? (input.length - offset) : bufferLength) | 0;
+    const bEnd = (offset + len) | 0;
+
     let h32 = 0 | 0;
-    let p = 0 | 0;
+    let p = offset;
 
     if (len >= 16) {
-        const limit = (len - 16) | 0;
+        const limit = (bEnd - 16) | 0;
         let v1 = (seed + PRIME32_1 + PRIME32_2) | 0;
         let v2 = (seed + PRIME32_2) | 0;
         let v3 = seed;
@@ -70,7 +77,7 @@ export function xxHash32(input, seed = 0) {
     h32 = (h32 + len) | 0;
 
     // Process remaining 4-byte chunks
-    const limit4 = (len - 4) | 0;
+    const limit4 = (bEnd - 4) | 0;
     while (p <= limit4) {
         const i = (input[p] | (input[p+1] << 8) | (input[p+2] << 16) | (input[p+3] << 24));
         h32 = (h32 + Math.imul(i, PRIME32_3)) | 0;
@@ -80,7 +87,7 @@ export function xxHash32(input, seed = 0) {
     }
 
     // Process remaining bytes
-    while (p < len) {
+    while (p < bEnd) {
         h32 = (h32 + Math.imul(input[p], PRIME32_5)) | 0;
         h32 = ((h32 << 11) | (h32 >>> 21));
         h32 = Math.imul(h32, PRIME32_1);

@@ -5,18 +5,19 @@
  * for V8 (Node.js/Chrome) performance, utilizing:
  * - Integer math optimization (`| 0`) to force 32-bit integer execution paths.
  * - Hash table lookups for deduplication.
- * - Unrolled loops for literal copying to reduce branching overhead.
- * - Overlapping write strategies for small buffers to avoid bounds checks.
+ * - Inlined Hashing to avoid function call overhead.
  * * @module blockCompress
  */
-import {hashU32} from "../shared/lz4Util.js";
 
+import { encodeLiterals } from "./blockLiterals.js";
+import { encodeMatch } from "./blockMatch.js";
+
+// --- Constants (Localized for V8 Immediates) ---
 const LAST_LITERALS = 5 | 0;
 const MF_LIMIT = 12 | 0;
-const HASH_SHIFT = 18 | 0;
-const HASH_MASK = 16383 | 0;
-const HASH_MULTIPLIER = 2654435761 | 0;
 const HASH_LOG = 14 | 0;
+const HASH_SHIFT = (32 - HASH_LOG) | 0;
+const HASH_MULTIPLIER = 2654435761 | 0; // 0x9E3779B1
 
 /**
  * Compresses a single block of data using the LZ4 algorithm.
@@ -31,208 +32,105 @@ const HASH_LOG = 14 | 0;
  * @returns {number} The number of bytes written to the `output` buffer.
  */
 export function compressBlock(src, output, srcStart, srcLen, hashTable, outputOffset) {
+    // V8 Optimization: Explicitly coerce arguments to 32-bit integers (SMIs)
     var sIndex = srcStart | 0;
+    var dIndex = outputOffset | 0;
+
+    // Derived bounds
     var sEnd = (srcStart + srcLen) | 0;
     var mflimit = (sEnd - MF_LIMIT) | 0;
     var matchLimit = (sEnd - LAST_LITERALS) | 0;
 
-    var dIndex = outputOffset | 0;
     var mAnchor = sIndex;
 
-    var searchMatchCount = (1 << 6) + 3;
+    // Search Skip state
+    var searchMatchCount = (1 << 6) + 3; // Start at 67
+    var mStep = 0 | 0;
 
+    // Hot Loop Variables (Pre-declared for register allocation hints)
     var seq = 0 | 0;
     var hash = 0 | 0;
     var mIndex = 0 | 0;
-    var mStep = 0 | 0;
+
+    var litLen = 0 | 0;
+    var tokenPos = 0 | 0;
+
+    var sPtr = 0 | 0;
+    var mPtr = 0 | 0;
+    var matchLen = 0 | 0;
+    var offset = 0 | 0;
 
     // --- Main Compression Loop ---
     while (sIndex < mflimit) {
-        // Read 4 bytes (sequence) at sIndex
+        // 1. Read 32-bit Sequence
+        // Note: TypedArray access `src[sIndex]` is optimized by V8 if sIndex is SMI.
         seq = (src[sIndex] | (src[sIndex + 1] << 8) | (src[sIndex + 2] << 16) | (src[sIndex + 3] << 24)) | 0;
 
-        // Hash the sequence to find potential matches
-        // hash = (Math.imul(seq, HASH_MULTIPLIER) >>> HASH_SHIFT) & HASH_MASK;
-        hash = hashU32(seq, HASH_LOG);
+        // 2. Calculate Hash (Inlined)
+        // Math.imul is the only way to get correct 32-bit overflow multiplication in JS.
+        // We OR with 0 to ensure the result is treated as signed 32-bit integer immediately.
+        hash = (Math.imul(seq, HASH_MULTIPLIER) >>> HASH_SHIFT) | 0;
+
+        // 3. Lookup Match
+        // hashTable is Int32Array, so reads are typed.
         mIndex = (hashTable[hash] - 1) | 0;
 
-        hashTable[hash] = sIndex + 1;
+        // 4. Update Hash Table
+        hashTable[hash] = (sIndex + 1) | 0;
 
-        // Verify Match:
-        // 1. mIndex must be valid (>= 0)
-        // 2. We cannot match the current position itself (sIndex === mIndex)
-        // 3. Distance check: (sIndex - mIndex) must be within 64k window (>>> 16 === 0)
-        // 4. Content check: The data at mIndex must match the current sequence
-        if (mIndex < 0 || sIndex === mIndex || ((sIndex - mIndex) >>> 16) > 0 ||
+        // 5. Verify Match
+        // We perform multiple integer checks. The `>>> 16` check efficiently verifies
+        // if the distance is within 65535 (64KB window).
+        if (mIndex < 0 ||
+            sIndex === mIndex ||
+            ((sIndex - mIndex) >>> 16) > 0 ||
             (src[mIndex] | (src[mIndex + 1] << 8) | (src[mIndex + 2] << 16) | (src[mIndex + 3] << 24)) !== seq) {
 
             // No match found: Skip forward
+            // The skip algorithm increases step size as we fail to find matches.
             mStep = (searchMatchCount++ >> 6) | 0;
             sIndex = (sIndex + mStep) | 0;
             continue;
         }
 
+        // Match found: Reset search skip
         searchMatchCount = (1 << 6) + 3;
 
-        // --- Match Found: Encode Literals ---
-        // Calculate the number of literal bytes (non-matching) before this match
-        var litLen = (sIndex - mAnchor) | 0;
-        var tokenPos = dIndex++;
+        // --- Encode Literals ---
+        litLen = (sIndex - mAnchor) | 0;
+        tokenPos = dIndex; // Capture position for Token
 
-        // Write literal length token
-        if (litLen >= 15) {
-            output[tokenPos] = 0xF0;
-            var l = (litLen - 15) | 0;
-            while (l >= 255) {
-                output[dIndex++] = 255;
-                l = (l - 255) | 0;
-            }
-            output[dIndex++] = l;
-        } else {
-            output[tokenPos] = (litLen << 4);
-        }
-
-        // --- Copy Literals (Tuned) ---
-        if (litLen > 0) {
-            var litSrc = mAnchor;
-            var litEnd = (dIndex + litLen) | 0;
-
-            // TUNING: Threshold increased from 64 to 128.
-            // < 128: JS loop is faster (avoids GC allocation of subarray).
-            // > 128: Native set() speed outweighs the GC cost.
-            if (litLen > 128) {
-                output.set(src.subarray(litSrc, litSrc + litLen), dIndex);
-                dIndex = litEnd;
-            } else {
-                // Optimized Small/Medium Copy Strategy
-
-                // 1. Unroll 8 bytes
-                var litLoopEnd = (litEnd - 8) | 0;
-                while (dIndex < litLoopEnd) {
-                    output[dIndex++] = src[litSrc++];
-                    output[dIndex++] = src[litSrc++];
-                    output[dIndex++] = src[litSrc++];
-                    output[dIndex++] = src[litSrc++];
-                    output[dIndex++] = src[litSrc++];
-                    output[dIndex++] = src[litSrc++];
-                    output[dIndex++] = src[litSrc++];
-                    output[dIndex++] = src[litSrc++];
-                }
-
-                // 2. Overlapping Final Write (Double-Copy Tail)
-                // If we have >= 8 bytes total, we copy the LAST 8 bytes of the block.
-                // This overlaps with previous writes but avoids branch misprediction on tiny tails.
-                if (litLen >= 8) {
-                    var tailOut = (litEnd - 8) | 0;
-                    var tailSrc = (mAnchor + litLen - 8) | 0;
-                    output[tailOut]   = src[tailSrc];
-                    output[tailOut+1] = src[tailSrc+1];
-                    output[tailOut+2] = src[tailSrc+2];
-                    output[tailOut+3] = src[tailSrc+3];
-                    output[tailOut+4] = src[tailSrc+4];
-                    output[tailOut+5] = src[tailSrc+5];
-                    output[tailOut+6] = src[tailSrc+6];
-                    output[tailOut+7] = src[tailSrc+7];
-                    dIndex = litEnd;
-                } else {
-                    // Tiny Copy (0-7 bytes) - fall back to standard loop
-                    while (dIndex < litEnd) {
-                        output[dIndex++] = src[litSrc++];
-                    }
-                }
-            }
-        }
+        // Delegate to optimized Literal Encoder
+        // dIndex is updated to the position AFTER literals are written
+        dIndex = encodeLiterals(output, dIndex, src, mAnchor, litLen);
 
         // --- Encode Match ---
-        var sPtr = (sIndex + 4) | 0;
-        var mPtr = (mIndex + 4) | 0;
+        sPtr = (sIndex + 4) | 0;
+        mPtr = (mIndex + 4) | 0;
 
-        // Find match length
+        // Count Match Length
+        // "sPtr < matchLimit" is the bounds check.
+        // "src[sPtr] === src[mPtr]" is the content check.
         while (sPtr < matchLimit && src[sPtr] === src[mPtr]) {
             sPtr = (sPtr + 1) | 0;
             mPtr = (mPtr + 1) | 0;
         }
 
-        var matchLen = (sPtr - sIndex) | 0;
-        var offset = (sIndex - mIndex) | 0;
+        matchLen = (sPtr - sIndex) | 0;
+        offset = (sIndex - mIndex) | 0;
 
-        // Write Offset (Little Endian)
-        output[dIndex++] = offset & 0xff;
-        output[dIndex++] = (offset >>> 8) & 0xff;
+        // Delegate to optimized Match Encoder
+        dIndex = encodeMatch(output, dIndex, tokenPos, matchLen, offset);
 
-        // Write Match Length
-        var lenCode = (matchLen - 4) | 0;
-        if (lenCode >= 15) {
-            output[tokenPos] |= 0x0F;
-            var l = (lenCode - 15) | 0;
-            while (l >= 255) {
-                output[dIndex++] = 255;
-                l = (l - 255) | 0;
-            }
-            output[dIndex++] = l;
-        } else {
-            output[tokenPos] |= lenCode;
-        }
-
+        // Advance Anchor
         sIndex = sPtr;
         mAnchor = sPtr;
     }
 
     // --- Final Literals (Tail) ---
-    // Handle any remaining data after the last match
-    var litLen = (sEnd - mAnchor) | 0;
-    var tokenPos = dIndex++;
+    var finalLitLen = (sEnd - mAnchor) | 0;
 
-    if (litLen >= 15) {
-        output[tokenPos] = 0xF0;
-        var l = (litLen - 15) | 0;
-        while (l >= 255) {
-            output[dIndex++] = 255;
-            l = (l - 255) | 0;
-        }
-        output[dIndex++] = l;
-    } else {
-        output[tokenPos] = (litLen << 4);
-    }
-
-    var litSrc = mAnchor;
-    if (litLen > 0) {
-        var litEnd = (dIndex + litLen) | 0;
-        // TUNING: Apply the same threshold (128) to the tail literals
-        if (litLen > 128) {
-            output.set(src.subarray(litSrc, litSrc + litLen), dIndex);
-            dIndex = litEnd;
-        } else {
-            // Unroll 8
-            var litLoopEnd = (litEnd - 8) | 0;
-            while (dIndex < litLoopEnd) {
-                output[dIndex++] = src[litSrc++];
-                output[dIndex++] = src[litSrc++];
-                output[dIndex++] = src[litSrc++];
-                output[dIndex++] = src[litSrc++];
-                output[dIndex++] = src[litSrc++];
-                output[dIndex++] = src[litSrc++];
-                output[dIndex++] = src[litSrc++];
-                output[dIndex++] = src[litSrc++];
-            }
-            // Overlapping Tail
-            if (litLen >= 8) {
-                var tailOut = (litEnd - 8) | 0;
-                var tailSrc = (mAnchor + litLen - 8) | 0;
-                output[tailOut]   = src[tailSrc];
-                output[tailOut+1] = src[tailSrc+1];
-                output[tailOut+2] = src[tailSrc+2];
-                output[tailOut+3] = src[tailSrc+3];
-                output[tailOut+4] = src[tailSrc+4];
-                output[tailOut+5] = src[tailSrc+5];
-                output[tailOut+6] = src[tailSrc+6];
-                output[tailOut+7] = src[tailSrc+7];
-                dIndex = litEnd;
-            } else {
-                while (dIndex < litEnd) output[dIndex++] = src[litSrc++];
-            }
-        }
-    }
+    dIndex = encodeLiterals(output, dIndex, src, mAnchor, finalLitLen);
 
     return (dIndex - outputOffset) | 0;
 }
