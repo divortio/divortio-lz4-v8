@@ -1,0 +1,13 @@
+env	language	package	corpus	file	medThroughput	avgDurationMs	dateTime
+V8	Javascript	lz4-divortio	silesia	dickens	52710955.481	193.365	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	mozilla	81647797.799	627.334	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	mr	86095308.004	115.808	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	nci	217832261.775	154.033	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	ooffice	46581984.342	132.072	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	osdb	80410047.004	125.428	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	reymont	65195121.122	101.652	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	samba	111366500.109	194.012	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	sao	46737138.033	155.164	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	webster	62643155.269	661.823	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	x-ray	44539018.707	190.266	2026-01-13T03:02:49.946Z
+V8	Javascript	lz4-divortio	silesia	xml	129360406.197	41.321	2026-01-13T03:02:49.946Z
