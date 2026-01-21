@@ -133,3 +133,4 @@ package-lock.json
 /.idea/
 /benchmark/results/
 /reference/*
+/dev/profiling/silesia.dickens/results/*
