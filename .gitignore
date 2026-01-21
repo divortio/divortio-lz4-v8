@@ -132,3 +132,4 @@ divortio-lz4.iml
 package-lock.json
 /.idea/
 /benchmark/results/
+/reference/*
