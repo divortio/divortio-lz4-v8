@@ -1,38 +1,64 @@
-# CLI Reporting: JSON
+# CLI JSON Output
 
-The JSON reporter outputs the raw serialized `BenchResults` object. This is ideal for programmatic consumption, archival, or passing data to other visualization tools.
+The Benchmark CLI supports exporting results to JSON for programmatic analysis and reporting.
 
 ## Usage
 
-Use `-f json` or specify a `.json` output file.
+Use the `--output` (or `-o`) argument to specify a destination file. If the file ends in `.jsonl` or if `--append` is used with an existing file, the CLI will append using JSON Lines mode.
 
 ```bash
-node benchmark/bench.js compress ... -f json
-node benchmark/bench.js compress ... -o my_results.json
+# Standard Output (Overwrite)
+node benchCompressCLI.js -l lz4-divortio -i data.bin -o results.json
+
+# Append Mode (JSON Lines)
+# Useful for collecting multiple runs in a single file without parsing the whole file.
+node benchCompressCLI.js -l lz4-divortio -i data.bin -o results.jsonl --append
 ```
 
 ## Structure
 
-The output is a JSON object containing:
--   `config`: Benchmark configuration (libraries, inputs, samples).
--   `sysInfo`: System information (CPU, OS).
--   `results`: Key-value map of performance metrics per library/file.
--   `startTime` / `endTime`: Execution timestamps.
+The JSON output is wrapped in a `BenchResults` object containing:
 
-## Appending
+- **meta**: Timestamps and duration.
+- **system**: System information (CPU, RAM, Node version).
+- **config**: The configuration used for the run.
+- **summary**: High-level aggregated stats (Total Duration, Throughput Avg).
+- **resultsAgg**: Aggregated metrics grouped by Library and File.
+- **results**: The raw sample data.
 
-If `--append` is used with a valid JSON file, the CLI treats the file as an array of benchmark runs.
+### Example
 
-1.  Reads existing file.
-2.  Parses as JSON.
-3.  Calculates if it is an Array or Object.
-4.  Pushes new result object to the array (converting single object to array if needed).
-5.  Writes file back.
-
-```bash
-# First run
-node benchmark/bench.js ... -o log.json
-
-# Second run (appends)
-node benchmark/bench.js ... -o log.json --append
+```json
+{
+  "meta": {
+    "startTime": "2023-10-27T10:00:00.000Z",
+    "endTime": "2023-10-27T10:00:01.000Z",
+    "durationMs": 1000
+  },
+  "summary": [
+    {
+      "Library": "lz4-divortio",
+      "throughputAvg": 150.5,
+      "totalDuration": 500,
+      "filesProcessed": 1
+    }
+  ],
+  "resultsAgg": [
+    {
+      "Library": "lz4-divortio",
+      "File": "data.bin",
+      "throughputAvg": 150.5,
+      "throughputMed": 150.2,
+      "throughputMax": 155.0,
+      "ratioAvg": 0.45,
+      "durationAvg": 100
+    }
+  ],
+  "results": {
+    "lz4-divortio": {
+      "name": "lz4-divortio",
+      "all": [ ...samples ]
+    }
+  }
+}
 ```

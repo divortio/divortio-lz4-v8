@@ -13,6 +13,7 @@ Documentation for the command-line arguments used by the `benchmark/bench.js` to
 *   `list`: List available resources. (See [cliList.md](cliList.md))
 *   `libs`: List available libraries. (See [cliListLibs.md](cliListLibs.md))
 *   `corpus`: List available corpora. (See [cliListCorpus.md](cliListCorpus.md))
+*   `profile`: Run profile operations. (See [cliProfile.md](cliProfile.md))
 
 ## Global Options
 
@@ -21,7 +22,7 @@ Documentation for the command-line arguments used by the `benchmark/bench.js` to
 *   `-c, --corpus <name>`: Specify corpus name (e.g., `silesia`). Can be repeated.
 *   `-o, --output <file/dir>`: Specify output report file or directory.
 *   `-f, --format <fmt>`: Report format (`md`, `json`, `csv`, `tsv`). Default: `md`.
-*   `--dir, --directory`: Directory for output (if not using `-o`).
+*   `--dir, --directory`: Directory for output (if not using `-o`). (Used as diagnostic dir for `profile`).
 
 ### Execution Control
 *   `-l, --library <name>`: Specify library to benchmark. Can be repeated.
@@ -30,7 +31,7 @@ Documentation for the command-line arguments used by the `benchmark/bench.js` to
 *   `--dry-run`: Simulate execution without running heavy tasks.
 
 ### Logging
-*   `--log [file]`: Enable streaming log to file. (See [cliLog.md](cliLog.md))
+*   `--log [file]`: Enable streaming log to file. (Used as V8 logfile for `profile`).
 *   `--log-format <fmt>`: Log format (`json`, `csv`, `tsv`). Default: `json`.
 
 ### Filtering
