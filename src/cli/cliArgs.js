@@ -2,19 +2,22 @@
  * src/cli/cliArgs.js
  * 
  * Argument parser for the LZ4-Divortio CLI (lz4CLI.js).
+ * Responsible for parsing raw command line arguments and producing a CLIConfig object.
  */
 
-import fs from 'fs';
-import path from 'path';
+import { CLIConfig } from './cliConfig.js';
 
+/**
+ * Parses command-line arguments and returns a configuration object.
+ * 
+ * @param {string[]} [rawArgs] - Optional raw arguments array (defaults to process.argv.slice(2)).
+ * @returns {CLIConfig} The configuration object.
+ */
 export function parseArgs(rawArgs) {
     const args = rawArgs || process.argv.slice(2);
 
     // Command defaulting
-    let command = 'compress'; // Default to compress if file provided? Or require command?
-    // "lz4 file" -> compresses. "lz4 -d file" -> decompresses.
-    // "lz4 compress file" -> compresses.
-    // Let's look at first arg.
+    let command = 'compress';
     if (args.length > 0) {
         if (args[0] === 'compress' || args[0] === 'c') {
             command = 'compress';
@@ -23,32 +26,11 @@ export function parseArgs(rawArgs) {
             command = 'decompress';
             args.shift();
         }
-        // Else assume implicit compress if it's a file, UNLESS -d flag was handled above
     }
 
-    const config = {
+    const options = {
         command: command,
-        input: null,
-        output: null,
-        force: false,       // Overwrite output
-        keep: true,         // Keep input file (default true)
-        verbose: false,
-        json: false,
-        log: false,
-        logPath: null,
-        logFormat: 'json',
-
-        // Compression Options
-        blockSize: 4194304, // 4MB default
-        dictionary: null,   // Path to dictionary file
-        blockIndependence: false,
-        contentChecksum: false,
-        addContentSize: true,
-
-        // Decompression Options
-        verifyChecksum: false,
-
-        isHelp: false
+        unknown: []
     };
 
     for (let i = 0; i < args.length; i++) {
@@ -59,98 +41,89 @@ export function parseArgs(rawArgs) {
         switch (arg) {
             case '-h':
             case '--help':
-                config.isHelp = true;
+                options.isHelp = true;
                 break;
             case '--json':
-                config.json = true;
+                options.json = true;
                 break;
             case '--log':
-                config.log = true;
+                options.log = true;
                 if (hasEffectiveNext) {
-                    config.logPath = next;
+                    options.logPath = next;
                     i++;
                 }
                 break;
             case '--log-format':
                 if (hasEffectiveNext) {
-                    const fmt = next.toLowerCase();
-                    if (['json', 'csv', 'tsv'].includes(fmt)) {
-                        config.logFormat = fmt;
-                    } else {
-                        console.warn(`Warning: Invalid log format '${next}'. Using 'json'.`);
-                    }
+                    options.logFormat = next.toLowerCase();
                     i++;
                 }
                 break;
             case '-v':
             case '--verbose':
-                config.verbose = true;
+                options.verbose = true;
                 break;
             case '-f':
             case '--force':
-                config.force = true;
+                options.force = true;
                 break;
             case '-k':
             case '--keep':
-                config.keep = true; // Explicitly set
+                options.keep = true;
                 break;
             case '--rm':
-                config.keep = false; // Delete input (like gzip)
+                options.keep = false;
                 break;
 
             // Output
             case '-o':
             case '--output':
                 if (hasEffectiveNext) {
-                    config.output = next;
+                    options.output = next;
                     i++;
                 }
                 break;
 
             // Dictionary
-            case '-D': // -D is standard in lz4 cli
+            case '-D':
             case '--dictionary':
                 if (hasEffectiveNext) {
-                    config.dictionary = next;
+                    options.dictionary = next;
                     i++;
                 }
                 break;
 
             // Compression: Block Size
             case '-B':
-            case '--block-size': // -B4, -B5 etc in lz4. Here we take bytes or k/m suffix or ID?
+            case '--block-size':
                 if (hasEffectiveNext) {
-                    config.blockSize = parseBlockSize(next);
+                    options.blockSize = parseBlockSize(next);
                     i++;
                 }
                 break;
-            // --fast / --best ? (LZ4 JS doesn't support acceleration levels yet in buffer API?)
-            // Ignore for now.
 
-            // Compression Flags
+            // Flags
             case '--independent-blocks':
-            case '-i': // -i usually implies independent
-                config.blockIndependence = true;
+            case '-i':
+                options.blockIndependence = true;
                 break;
             case '--content-checksum':
-                config.contentChecksum = true;
+                options.contentChecksum = true;
                 break;
             case '--no-frame-content-size':
-                config.addContentSize = false;
+                options.addContentSize = false;
                 break;
 
-            // Decompression Flags
             case '--verify-checksum':
-                config.verifyChecksum = true;
+                options.verifyChecksum = true;
                 break;
 
             // Positional (Input)
             default:
                 if (!arg.startsWith('-')) {
-                    if (!config.input) {
-                        config.input = arg;
+                    if (!options.input) {
+                        options.input = arg;
                     } else {
-                        // Multiple inputs? For now support single file.
                         console.warn(`Warning: Multiple inputs not supported yet, ignoring '${arg}'`);
                     }
                 } else {
@@ -160,31 +133,28 @@ export function parseArgs(rawArgs) {
         }
     }
 
-    // Default Output Filename Logic
-    if (config.input && !config.output) {
-        if (config.command === 'compress') {
-            config.output = `${config.input}.lz4`;
-        } else if (config.command === 'decompress') {
-            if (config.input.endsWith('.lz4')) {
-                config.output = config.input.substring(0, config.input.length - 4);
-            } else {
-                config.output = `${config.input}.out`;
-            }
-        }
-    }
-
-    return config;
+    // Pass parsed options to CLIConfig which handles defaults and validation logic
+    return new CLIConfig(options);
 }
 
+/**
+ * Parses block size string to bytes.
+ * Support 'k', 'kb', 'm', 'mb' suffixes.
+ * 
+ * @param {string} str - The block size string (e.g. "4MB", "64k").
+ * @returns {number} Block size in bytes.
+ */
 function parseBlockSize(str) {
     const s = str.toLowerCase();
     if (s.endsWith('m') || s.endsWith('mb')) return parseInt(s) * 1024 * 1024;
     if (s.endsWith('k') || s.endsWith('kb')) return parseInt(s) * 1024;
     const val = parseInt(s);
-    // Align to supported sizes logic in bufferCompress (It finds closest? Or we pass explicitly)
-    // lz4.js: "maxBlockSize"
-    // Supported: 64KB (65536), 256KB (262144), 1MB (1048576), 4MB (4194304)
-    // Map to closest?
+
+    // Map to standard block sizes if explicit match logic needed, 
+    // but config just stores the number. 
+    // lz4-js usually snaps to nearest valid size or validates it.
+    // We return the raw parsed number here, assuming the library handles it or we snap it.
+    // Existing logic snapped:
     if (val <= 65536) return 65536;
     if (val <= 262144) return 262144;
     if (val <= 1048576) return 1048576;

@@ -1,18 +1,23 @@
 /**
  * src/cli/cliDecompress.js
  * 
- * Decompression handler for LZ4 CLI.
+ * Decompression handler for the LZ4-Divortio CLI.
+ * Orchestrates the file decompression process including reading, decompressing, and writing output.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { LZ4 } from '../lz4.js';
-import {
-    formatBytes, formatDuration, formatThroughput, formatRatio,
-    calculateThroughput, calculateRatioPct, round
-} from './cliUtils.js';
+import { CliDecompressResults } from './cliDecompressResults.js';
 import { writeLog } from './cliLog.js';
+import { formatBytes, formatDuration, formatThroughput, formatRatio } from './cliUtils.js';
 
+/**
+ * Executes the decompression command based on the provided configuration.
+ * 
+ * @param {import('./cliConfig.js').CLIConfig} config - The CLI configuration object.
+ * @returns {void}
+ */
 export function run(config) {
     if (config.log) config.verbose = true;
 
@@ -43,8 +48,10 @@ export function run(config) {
     }
 
     try {
-        const sysTimeStart = new Date();
-        const totalStart = performance.now();
+        const results = new CliDecompressResults();
+        results.setCommand(process.argv.slice(2));
+        results.start();
+
         const absInput = path.resolve(config.input);
         const absOutput = path.resolve(config.output);
 
@@ -53,6 +60,9 @@ export function run(config) {
         const inputBuf = fs.readFileSync(config.input);
         const tReadEnd = performance.now();
         const readMs = tReadEnd - tReadStart;
+
+        results.recordInput(absInput, inputBuf.length);
+        results.recordRead(inputBuf.length, readMs);
 
         // 2. Decompress
         const tDecompStart = performance.now();
@@ -64,91 +74,34 @@ export function run(config) {
         const tDecompEnd = performance.now();
         const decompMs = tDecompEnd - tDecompStart;
 
+        results.recordDecompress(inputBuf.length, decompressed.length, decompMs);
+
         // 3. Write
         const tWriteStart = performance.now();
         fs.writeFileSync(config.output, decompressed);
         const tWriteEnd = performance.now();
         const writeMs = tWriteEnd - tWriteStart;
 
-        const totalEnd = performance.now();
-        const totalMs = totalEnd - totalStart;
-        const sysTimeEnd = new Date();
+        results.recordWrite(decompressed.length, writeMs);
+        results.recordOutput(absOutput, decompressed.length);
 
-        const cmd = "node src/lz4CLI.js " + process.argv.slice(2).join(' ');
-        const inSize = inputBuf.length;
-        const outSize = decompressed.length;
+        results.end();
 
-        // Build Output Object
-        const outputObj = {
-            startTime: sysTimeStart.getTime(),
-            startTimeH: sysTimeStart.toISOString(),
-            endTime: sysTimeEnd.getTime(),
-            endTimeH: sysTimeEnd.toISOString(),
-
-            command: cmd,
-            input: {
-                path: absInput,
-                size: inSize,
-                sizeH: formatBytes(inSize)
-            },
-            read: {
-                size: inSize,
-                sizeH: formatBytes(inSize),
-                durationMs: round(readMs),
-                durationH: formatDuration(readMs),
-                throughputMBps: round(calculateThroughput(inSize, readMs)),
-                throughputH: formatThroughput(inSize, readMs)
-            },
-            decompress: {
-                inputSize: inSize,
-                inputSizeH: formatBytes(inSize),
-                outputSize: outSize,
-                outputSizeH: formatBytes(outSize),
-                durationMs: round(decompMs),
-                durationH: formatDuration(decompMs),
-                throughputMBps: round(calculateThroughput(inSize, decompMs)), // Using Input size for processing throughput
-                throughputH: formatThroughput(inSize, decompMs),
-                ratioPct: round(calculateRatioPct(inSize, outSize)),
-                ratioH: formatRatio(inSize, outSize)
-            },
-            write: {
-                size: outSize,
-                sizeH: formatBytes(outSize),
-                durationMs: round(writeMs),
-                durationH: formatDuration(writeMs),
-                throughputMBps: round(calculateThroughput(outSize, writeMs)),
-                throughputH: formatThroughput(outSize, writeMs)
-            },
-            processed: {
-                command: "decompress",
-                inputSize: inSize,
-                inputSizeH: formatBytes(inSize),
-                outputSize: outSize,
-                outputSizeH: formatBytes(outSize),
-                ratioPct: round(calculateRatioPct(inSize, outSize)),
-                ratioH: formatRatio(inSize, outSize),
-                durationMs: round(totalMs),
-                durationH: formatDuration(totalMs),
-                throughputMBps: round(calculateThroughput(inSize, totalMs)),
-                throughputH: formatThroughput(inSize, totalMs)
-            },
-            output: {
-                path: absOutput,
-                size: outSize,
-                sizeH: formatBytes(outSize)
-            }
-        };
+        const outputObj = results.toJSON();
 
         if (config.json) {
             console.log(JSON.stringify(outputObj));
         } else if (config.verbose) {
-            console.log(`Command: ${cmd}`);
-            console.log(`Input: "${absInput}" (${formatBytes(inSize)})`);
-            console.log(`Read: ${formatBytes(inSize)} to Buffer in ${formatDuration(readMs)} (${formatThroughput(inSize, readMs)})`);
-            console.log(`Decompress: ${formatBytes(inSize)} to ${formatBytes(outSize)} in ${formatDuration(decompMs)} (${formatThroughput(inSize, decompMs)}), ${formatRatio(inSize, outSize)} in size.`);
-            console.log(`Wrote: ${formatBytes(outSize)} to File in ${formatDuration(writeMs)} (${formatThroughput(outSize, writeMs)})`);
-            console.log(`Processed: ${formatBytes(inSize)} to ${formatBytes(outSize)} (${formatRatio(inSize, outSize)}) in ${formatDuration(totalMs)} (${formatThroughput(inSize, totalMs)})`);
-            console.log(`Output: "${absOutput}"`);
+            // Unpack stats for easier printing
+            const iSize = outputObj.input.size;
+            const oSize = outputObj.output.size;
+            console.log(`Command: ${outputObj.command}`);
+            console.log(`Input: "${outputObj.input.path}" (${outputObj.input.sizeH})`);
+            console.log(`Read: ${outputObj.read.sizeH} to Buffer in ${outputObj.read.durationH} (${outputObj.read.throughputH})`);
+            console.log(`Decompress: ${formatBytes(iSize)} to ${formatBytes(oSize)} in ${outputObj.decompress.durationH} (${outputObj.decompress.throughputH}), ${outputObj.decompress.ratioH} output size.`);
+            console.log(`Wrote: ${outputObj.write.sizeH} to File in ${outputObj.write.durationH} (${outputObj.write.throughputH})`);
+            console.log(`Processed: ${formatBytes(iSize)} to ${formatBytes(oSize)} (${outputObj.processed.ratioH}) in ${outputObj.processed.durationH} (${outputObj.processed.throughputH})`);
+            console.log(`Output: "${outputObj.output.path}"`);
         }
 
         if (config.log) {

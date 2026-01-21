@@ -1,12 +1,20 @@
 /**
  * src/cli/cliHelp.js
  * 
- * Displays rich help information for the LZ4-Divortio CLI.
+ * Helper module for displaying CLI usage information.
+ * Contains the help text for compression, decompression, and general usage.
  */
 
+/**
+ * Displays rich help information for the LZ4-Divortio CLI commands.
+ * 
+ * @param {string} [command] - The specific command to show help for ('compress' or 'decompress').
+ *                             If omitted or unrecognized, shows valid commands and global options.
+ * @returns {void}
+ */
 export function showHelp(command) {
-    if (command === 'compress') {
-        console.log(`
+  if (command === 'compress') {
+    console.log(`
   Usage: node src/lz4CLI.js compress [options] <file>
 
   Description:
@@ -33,11 +41,11 @@ export function showHelp(command) {
     node src/lz4CLI.js compress data.bin
     node src/lz4CLI.js compress data.bin -B 64k --rm -o data.lz4
         `);
-        return;
-    }
+    return;
+  }
 
-    if (command === 'decompress') {
-        console.log(`
+  if (command === 'decompress') {
+    console.log(`
   Usage: node src/lz4CLI.js decompress [options] <file>
 
   Description:
@@ -61,11 +69,11 @@ export function showHelp(command) {
     node src/lz4CLI.js decompress data.lz4
     node src/lz4CLI.js -d data.lz4 --rm --verify-checksum
         `);
-        return;
-    }
+    return;
+  }
 
-    // Default / Global Help
-    console.log(`
+  // Default / Global Help
+  console.log(`
   Usage: node src/lz4CLI.js <command> [options] <file>
 
   Commands:

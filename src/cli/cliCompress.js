@@ -1,19 +1,24 @@
 /**
  * src/cli/cliCompress.js
  * 
- * Compression handler for LZ4 CLI.
+ * Compression handler for the LZ4-Divortio CLI.
+ * Orchestrates the file compression process including reading, compressing, and writing output.
  */
 
 import fs from 'fs';
 import path from 'path';
 import { LZ4 } from '../lz4.js';
 import { LZ4Dictionary } from '../dictionary/LZ4Dictionary.js';
-import {
-    formatBytes, formatDuration, formatThroughput, formatRatio,
-    calculateThroughput, calculateRatioPct, round
-} from './cliUtils.js';
+import { CliCompressResults } from './cliCompressResults.js';
 import { writeLog } from './cliLog.js';
+import { formatBytes, formatDuration, formatThroughput, formatRatio } from './cliUtils.js';
 
+/**
+ * Executes the compression command based on the provided configuration.
+ * 
+ * @param {import('./cliConfig.js').CLIConfig} config - The CLI configuration object.
+ * @returns {void}
+ */
 export function run(config) {
     if (config.log) config.verbose = true;
 
@@ -47,8 +52,10 @@ export function run(config) {
     }
 
     try {
-        const sysTimeStart = new Date();
-        const totalStart = performance.now();
+        const results = new CliCompressResults();
+        results.setCommand(process.argv.slice(2));
+        results.start();
+
         const absInput = path.resolve(config.input);
         const absOutput = path.resolve(config.output);
 
@@ -57,6 +64,9 @@ export function run(config) {
         const inputBuf = fs.readFileSync(config.input);
         const tReadEnd = performance.now();
         const readMs = tReadEnd - tReadStart;
+
+        results.recordInput(absInput, inputBuf.length);
+        results.recordRead(inputBuf.length, readMs);
 
         // 2. Compress
         const tCompStart = performance.now();
@@ -71,91 +81,33 @@ export function run(config) {
         const tCompEnd = performance.now();
         const compMs = tCompEnd - tCompStart;
 
+        results.recordCompress(inputBuf.length, compressed.length, compMs);
+
         // 3. Write
         const tWriteStart = performance.now();
         fs.writeFileSync(config.output, compressed);
         const tWriteEnd = performance.now();
         const writeMs = tWriteEnd - tWriteStart;
 
-        const totalEnd = performance.now();
-        const totalMs = totalEnd - totalStart;
-        const sysTimeEnd = new Date();
+        results.recordWrite(compressed.length, writeMs);
+        results.recordOutput(absOutput, compressed.length);
 
-        const cmd = "node src/lz4CLI.js " + process.argv.slice(2).join(' ');
-        const inSize = inputBuf.length;
-        const outSize = compressed.length;
+        results.end();
 
-        // Build Output Object
-        const outputObj = {
-            startTime: sysTimeStart.getTime(),
-            startTimeH: sysTimeStart.toISOString(),
-            endTime: sysTimeEnd.getTime(),
-            endTimeH: sysTimeEnd.toISOString(),
-
-            command: cmd,
-            input: {
-                path: absInput,
-                size: inSize,
-                sizeH: formatBytes(inSize)
-            },
-            read: {
-                size: inSize,
-                sizeH: formatBytes(inSize),
-                durationMs: round(readMs),
-                durationH: formatDuration(readMs),
-                throughputMBps: round(calculateThroughput(inSize, readMs)),
-                throughputH: formatThroughput(inSize, readMs)
-            },
-            compress: {
-                inputSize: inSize,
-                inputSizeH: formatBytes(inSize),
-                outputSize: outSize,
-                outputSizeH: formatBytes(outSize),
-                durationMs: round(compMs),
-                durationH: formatDuration(compMs),
-                throughputMBps: round(calculateThroughput(inSize, compMs)), // Input based processing speed
-                throughputH: formatThroughput(inSize, compMs),
-                ratioPct: round(calculateRatioPct(inSize, outSize)),
-                ratioH: formatRatio(inSize, outSize)
-            },
-            write: {
-                size: outSize,
-                sizeH: formatBytes(outSize),
-                durationMs: round(writeMs),
-                durationH: formatDuration(writeMs),
-                throughputMBps: round(calculateThroughput(outSize, writeMs)),
-                throughputH: formatThroughput(outSize, writeMs)
-            },
-            processed: {
-                command: "compress",
-                inputSize: inSize,
-                inputSizeH: formatBytes(inSize),
-                outputSize: outSize,
-                outputSizeH: formatBytes(outSize),
-                ratioPct: round(calculateRatioPct(inSize, outSize)),
-                ratioH: formatRatio(inSize, outSize),
-                durationMs: round(totalMs),
-                durationH: formatDuration(totalMs),
-                throughputMBps: round(calculateThroughput(inSize, totalMs)),
-                throughputH: formatThroughput(inSize, totalMs)
-            },
-            output: {
-                path: absOutput,
-                size: outSize,
-                sizeH: formatBytes(outSize)
-            }
-        };
+        const outputObj = results.toJSON();
 
         if (config.json) {
             console.log(JSON.stringify(outputObj));
         } else if (config.verbose) {
-            console.log(`Command: ${cmd}`);
-            console.log(`Input: "${absInput}" (${formatBytes(inSize)})`);
-            console.log(`Read: ${formatBytes(inSize)} to Buffer in ${formatDuration(readMs)} (${formatThroughput(inSize, readMs)})`);
-            console.log(`Compress: ${formatBytes(inSize)} to ${formatBytes(outSize)} in ${formatDuration(compMs)} (${formatThroughput(inSize, compMs)}), ${formatRatio(inSize, outSize)} in size.`);
-            console.log(`Wrote: ${formatBytes(outSize)} to File in ${formatDuration(writeMs)} (${formatThroughput(outSize, writeMs)})`);
-            console.log(`Processed: ${formatBytes(inSize)} to ${formatBytes(outSize)} (${formatRatio(inSize, outSize)}) in ${formatDuration(totalMs)} (${formatThroughput(inSize, totalMs)})`);
-            console.log(`Output: "${absOutput}"`);
+            const iSize = outputObj.input.size;
+            const oSize = outputObj.output.size;
+            console.log(`Command: ${outputObj.command}`);
+            console.log(`Input: "${outputObj.input.path}" (${outputObj.input.sizeH})`);
+            console.log(`Read: ${outputObj.read.sizeH} to Buffer in ${outputObj.read.durationH} (${outputObj.read.throughputH})`);
+            console.log(`Compress: ${formatBytes(iSize)} to ${formatBytes(oSize)} in ${outputObj.compress.durationH} (${outputObj.compress.throughputH}), ${outputObj.compress.ratioH} output size.`);
+            console.log(`Wrote: ${outputObj.write.sizeH} to File in ${outputObj.write.durationH} (${outputObj.write.throughputH})`);
+            console.log(`Processed: ${formatBytes(iSize)} to ${formatBytes(oSize)} (${outputObj.processed.ratioH}) in ${outputObj.processed.durationH} (${outputObj.processed.throughputH})`);
+            console.log(`Output: "${outputObj.output.path}"`);
         }
 
         if (config.log) {

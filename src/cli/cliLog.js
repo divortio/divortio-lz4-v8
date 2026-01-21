@@ -9,6 +9,14 @@ import fs from 'fs';
 import path from 'path';
 import { formatBytes } from './cliUtils.js';
 
+/**
+ * Writes the execution results configuration to a log file.
+ * Supports appending to JSON (ndjson), CSV, or TSV files.
+ * 
+ * @param {import('./cliConfig.js').CLIConfig} config - The CLI configuration object containing log settings.
+ * @param {object} dataObj - The result object to log (e.g. from CliCompressResults.toJSON()).
+ * @returns {object|null} An object containing the log file path and size, or null if logging is disabled or fails.
+ */
 export function writeLog(config, dataObj) {
     if (!config.log) return null;
 
@@ -17,9 +25,7 @@ export function writeLog(config, dataObj) {
         let logPath = config.logPath;
         if (!logPath) {
             // Generate default: log_{command}_{timestamp}.{ext}
-            // Use START time from dataObj for consistency, or current time?
-            // User requested: log_${process}_${startTimestampUnixMsInteger}.${ext}
-            const ts = dataObj.startTime; // Expecting ms integer from previous step
+            const ts = dataObj.startTime; // Expecting ms integer
             const ext = config.logFormat;
             const cmd = (dataObj.processed && dataObj.processed.command) ? dataObj.processed.command : config.command;
             logPath = `log_${cmd}_${ts}.${ext}`;
@@ -32,12 +38,13 @@ export function writeLog(config, dataObj) {
         let contentToWrite = '';
 
         if (config.logFormat === 'json') {
+            // Newline Delimited JSON
             contentToWrite = JSON.stringify(dataObj) + '\n';
         } else {
             // CSV or TSV
             const separator = config.logFormat === 'csv' ? ',' : '\t';
             const flat = flattenObject(dataObj);
-            const keys = Object.keys(flat).sort(); // Sort to ensure consistent column order if object order implies anything (it shouldn't but good for diffs)
+            const keys = Object.keys(flat).sort();
 
             if (!exists) {
                 // Write Header
@@ -47,7 +54,7 @@ export function writeLog(config, dataObj) {
             // Write Value Row
             const values = keys.map(k => {
                 const val = flat[k];
-                // Escape if string contains separator or newline (basic CSV escaping)
+                // Escape if string contains separator or newline
                 if (typeof val === 'string' && (val.includes(separator) || val.includes('\n') || val.includes('"'))) {
                     return `"${val.replace(/"/g, '""')}"`;
                 }
@@ -74,12 +81,21 @@ export function writeLog(config, dataObj) {
     }
 }
 
+/**
+ * Flattens a nested object into a single-level object with dot-notation keys.
+ * Useful for CSV/TSV export.
+ * 
+ * @param {object} obj - The object to flatten.
+ * @param {string} [prefix=''] - The prefix for the current keys.
+ * @param {object} [res={}] - The result object (used for recursion).
+ * @returns {object} The flattened object.
+ */
 function flattenObject(obj, prefix = '', res = {}) {
     for (const key in obj) {
         if (Object.prototype.hasOwnProperty.call(obj, key)) {
             const val = obj[key];
-            const newKey = prefix ? `${prefix}.${key}` : key; // JSON-like dot notation for flattened keys? Or underscores?
-            // "input.sizeH" is readable.
+            const newKey = prefix ? `${prefix}.${key}` : key;
+
             if (typeof val === 'object' && val !== null) {
                 flattenObject(val, newKey, res);
             } else {
