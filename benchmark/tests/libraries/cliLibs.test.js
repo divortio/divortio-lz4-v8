@@ -14,7 +14,8 @@ test('CLI Libraries Command', async (t) => {
 
         // Check for known libs
         assert.match(result.stdout, /lz4/i);
-        assert.match(result.stdout, /lz4-js/i);
+        assert.match(result.stdout, /lz4/i);
+        assert.match(result.stdout, /node.lz4Napi/i);
         // lz4Divortio usage check
         assert.match(result.stdout, /lz4Divortio/);
     });

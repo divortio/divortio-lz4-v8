@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'fs';
 import path from 'path';
-import { runBench } from '../utils/testUtils.js';
+import { runBench, TEST_CACHE_DIR } from '../utils/testUtils.js';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -25,19 +25,33 @@ test('CLI Decompress Command', async (t) => {
     await t.test('decompress local file', () => {
         // Note: decompress benchmark usually implies file is already compressed or it compresses then decompresses?
         // BenchDecompressFilesCLI uses BenchDecompressFilesInProc.
-        // BenchDecompressFilesInProc logic (Step 2664 in memory):
-        // It pre-compresses the input file in memory (or disk?) before measuring decompression.
-        // Let's assume it handles raw input by compressing first.
+        // BenchDecompressFilesInProc logic: it pre-compresses the input file in memory.
 
-        const result = runBench(['decompress', '-l', 'lz4Divortio', '-i', TEMP_FILE, '-s', '1', '-w', '0']);
+        const outputDir = path.join(TEST_CACHE_DIR, 'decompress');
+        fs.mkdirSync(outputDir, { recursive: true });
+
+        const result = runBench(['decompress', '-l', 'lz4Divortio', '-i', TEMP_FILE, '-s', '1', '-w', '0', '-f', 'json', '--dir', outputDir]);
         assert.strictEqual(result.exitCode, 0, `Failed: ${result.stderr}`);
 
+        // files are in outputDir now
+        const files = fs.readdirSync(outputDir);
+        const jsonFile = files.find(f => f.startsWith('decp_') && f.endsWith('.json'));
+
+        assert.ok(jsonFile, 'Should generate a JSON report file');
+
+        const jsonPath = path.join(outputDir, jsonFile);
+
         try {
-            const data = JSON.parse(result.stdout);
-            assert.ok(data[TEMP_FILE]);
-            assert.ok(data[TEMP_FILE]['lz4Divortio']);
+            const content = fs.readFileSync(jsonPath, 'utf8');
+            const data = JSON.parse(content);
+            assert.ok(data.results, 'Output should contain results');
+            // Basic validation
+            assert.ok(data.config);
+
+            // Cleanup
+            fs.rmSync(outputDir, { recursive: true, force: true });
         } catch (e) {
-            assert.fail(`Output was not valid JSON: ${result.stdout}`);
+            assert.fail(`Output was not valid JSON file: ${e.message}`);
         }
     });
 });

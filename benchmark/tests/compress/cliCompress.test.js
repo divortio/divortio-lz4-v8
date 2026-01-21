@@ -6,7 +6,7 @@ import { test } from 'node:test';
 import assert from 'node:assert';
 import fs from 'fs';
 import path from 'path';
-import { runBench } from '../utils/testUtils.js';
+import { runBench, TEST_CACHE_DIR } from '../utils/testUtils.js';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -23,18 +23,30 @@ test('CLI Compress Command', async (t) => {
     });
 
     await t.test('compress local file', () => {
-        const result = runBench(['compress', '-l', 'lz4Divortio', '-i', TEMP_FILE, '-s', '1', '-w', '0']);
+        const outputDir = path.join(TEST_CACHE_DIR, 'compress');
+        fs.mkdirSync(outputDir, { recursive: true });
+
+        const result = runBench(['compress', '-l', 'lz4Divortio', '-i', TEMP_FILE, '-s', '1', '-w', '0', '-f', 'json', '--dir', outputDir]);
         assert.strictEqual(result.exitCode, 0, `Failed: ${result.stderr}`);
 
-        // Check output JSON structure (default is JSON-like string if not --json?) 
-        // Wait, benchCompressFilesCLI.js logs JSON.stringify(output)
-        // Let's parse it
+        const files = fs.readdirSync(outputDir);
+        const jsonFile = files.find(f => f.startsWith('comp_') && f.endsWith('.json'));
+
+        assert.ok(jsonFile, 'Should generate a JSON report file');
+
+        const jsonPath = path.join(outputDir, jsonFile);
+
         try {
-            const data = JSON.parse(result.stdout);
-            assert.ok(data[TEMP_FILE], 'Output should contain file key');
-            assert.ok(data[TEMP_FILE]['lz4Divortio'], 'Output should contain lib key');
+            const content = fs.readFileSync(jsonPath, 'utf8');
+            const data = JSON.parse(content);
+            assert.ok(data.results, 'Output should contain results');
+            // Basic validation
+            assert.ok(data.config);
+
+            // Cleanup on success
+            fs.rmSync(outputDir, { recursive: true, force: true });
         } catch (e) {
-            assert.fail(`Output was not valid JSON: ${result.stdout}`);
+            assert.fail(`Output was not valid JSON file or cleanup failed: ${e.message}`);
         }
     });
 });
