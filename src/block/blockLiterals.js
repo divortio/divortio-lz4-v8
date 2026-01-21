@@ -36,8 +36,10 @@ export function encodeLiterals(output, outPos, src, srcPos, litLen) {
         var litEnd = (dIndex + litLen) | 0;
 
         if (litLen > 128) {
-            output.set(src.subarray(litSrc, litSrc + litLen), dIndex);
-            dIndex = litEnd;
+            // optimized: zero-allocation copy
+            while (dIndex < litEnd) {
+                output[dIndex++] = src[litSrc++];
+            }
         } else {
             // Optimized Small/Medium Copy Strategy
             // 1. Unroll 8 bytes
@@ -58,14 +60,14 @@ export function encodeLiterals(output, outPos, src, srcPos, litLen) {
                 var tailOut = (litEnd - 8) | 0;
                 var tailSrc = (srcPos + litLen - 8) | 0;
 
-                output[tailOut]   = src[tailSrc];
-                output[tailOut+1] = src[tailSrc+1];
-                output[tailOut+2] = src[tailSrc+2];
-                output[tailOut+3] = src[tailSrc+3];
-                output[tailOut+4] = src[tailSrc+4];
-                output[tailOut+5] = src[tailSrc+5];
-                output[tailOut+6] = src[tailSrc+6];
-                output[tailOut+7] = src[tailSrc+7];
+                output[tailOut] = src[tailSrc];
+                output[tailOut + 1] = src[tailSrc + 1];
+                output[tailOut + 2] = src[tailSrc + 2];
+                output[tailOut + 3] = src[tailSrc + 3];
+                output[tailOut + 4] = src[tailSrc + 4];
+                output[tailOut + 5] = src[tailSrc + 5];
+                output[tailOut + 6] = src[tailSrc + 6];
+                output[tailOut + 7] = src[tailSrc + 7];
                 dIndex = litEnd;
             } else {
                 // Tiny Copy (0-7 bytes)
