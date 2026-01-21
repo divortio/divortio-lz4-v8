@@ -127,8 +127,8 @@ divortio-cryptoXOR.iml
 divortio-lz4.iml
 .DS_Store
 *.cpuprofile
-benchmark/decompression-1MB.cpuprofile
-benchmark/decompression-1MB.cpuprofile
-/benchmark/.cache/corpus/silesia
+
+/.cache/*
 package-lock.json
 /.idea/
+/benchmark/results/
