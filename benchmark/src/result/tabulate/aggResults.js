@@ -5,16 +5,16 @@
  * Supports Group By (dimensions), Metrics, Aggregations, and Sorting.
  */
 
-import { sortData } from '../dsv/dsvBase.js'; // Reuse generic sort if needed, but we'll specific multi-sort here.
+import { sortData } from '../../report/dsv/dsvBase.js'; // Reuse generic sort if needed, but we'll specific multi-sort here.
 
 export class Aggregator {
     /**
      * Aggregates benchmark results.
      * 
      * @param {object} benchResults - The BenchResults object.
-     * @param {Array<import('./aggTypes').DimensionField>} dimensions
-     * @param {Array<import('./aggTypes').MetricField>} metrics
-     * @param {Array<import('./aggTypes').SortFieldAsc|import('./aggTypes').SortFieldDesc>} orderBy
+     * @param {Array<import('./aggTypes.js').DimensionField>} dimensions
+     * @param {Array<import('./aggTypes.js').MetricField>} metrics
+     * @param {Array<import('./aggTypes.js').SortFieldAsc|import('./aggTypes').SortFieldDesc>} orderBy
      * @returns {object[]} - Array of aggregated row objects.
      */
     static aggregate(benchResults, dimensions = [], metrics = [], orderBy = []) {

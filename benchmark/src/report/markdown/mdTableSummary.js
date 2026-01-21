@@ -5,7 +5,7 @@
  * Shows fastest/slowest files and overall performance.
  */
 
-import { Aggregator } from '../tabulate/aggResults.js';
+import { Aggregator } from '../../result/tabulate/aggResults.js';
 import { generateTable, formatBytes } from './mdTableBase.js';
 
 export function generateSummaryTable(benchResults) {

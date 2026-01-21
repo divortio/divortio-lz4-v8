@@ -36,6 +36,17 @@ export class InputFile {
         this._hashes = {};     // Cached hashes { md5: '...', sha1: '...' }
     }
 
+    toJSON() {
+        return {
+            filename: this.filename,
+            path: this.path,
+            corpusName: this.corpusName,
+            size: this.size, // triggers stat
+            sizeH: this.sizeH,
+            extension: this.extension
+        };
+    }
+
     /**
      * Checks if the file exists on disk.
      * @returns {boolean}

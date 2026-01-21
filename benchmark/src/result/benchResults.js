@@ -7,10 +7,12 @@
 
 import { BenchConfig } from '../bench/shared/benchConfig.js';
 import { BenchSysInfo } from '../bench/shared/benchSysInfo.js';
+import { ResultsAggClass } from './shared/resultsAggClass.js';
+import { ResultsSummaryClass } from './shared/resultsSummaryClass.js';
 
 export class BenchResults {
     /**
-     * @param {BenchConfig} config 
+     * @param {Config} config 
      */
     constructor(config) {
         this.config = config;
@@ -18,6 +20,8 @@ export class BenchResults {
         this.startTime = new Date();
         this.endTime = null;
         this.results = {}; // The actual metrics map
+        this.resultsAgg = null;
+        this.summary = null;
     }
 
     /**
@@ -27,6 +31,10 @@ export class BenchResults {
     setResults(resultsMap) {
         this.results = resultsMap;
         this.endTime = new Date(); // Mark end time when results are set (approx)
+
+        // Calculate Aggregations & Summary
+        this.resultsAgg = new ResultsAggClass(this);
+        this.summary = new ResultsSummaryClass(this);
     }
 
     toJSON() {
@@ -38,10 +46,10 @@ export class BenchResults {
             },
             system: this.sysInfo.toJSON(),
             config: this.config.toJSON(),
-            // Results structure depends on the runner (Single/Multi file, Single/Multi lib)
-            // But usually it's nested objects/arrays which are JSON serializable.
-            // If the results modify their toJSON behavior (like ResultClass), they will define serialization.
+            summary: this.summary ? this.summary.toJSON() : null,
+            resultsAgg: this.resultsAgg ? this.resultsAgg.toJSON() : null,
             results: this.results
         };
     }
 }
+

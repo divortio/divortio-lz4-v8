@@ -4,9 +4,9 @@
  * Generates a markdown table for Aggregated Results.
  */
 
-import { Aggregator } from '../tabulate/aggResults.js';
+import { Aggregator } from '../../result/tabulate/aggResults.js';
 import { generateTable, formatValue } from './mdTableBase.js';
-import { DimensionField, MetricField, SortFieldAsc, SortFieldDesc } from '../tabulate/aggTypes.js';
+import { DimensionField, MetricField, SortFieldAsc, SortFieldDesc } from '../../result/tabulate/aggTypes.js';
 
 /**
  * Generates markdown table for aggregated results.

@@ -1,6 +1,6 @@
-import { Aggregator } from '../tabulate/aggResults.js';
+import { Aggregator } from '../../result/tabulate/aggResults.js';
 import { generateDSV } from './dsvBase.js';
-import { DimensionField, MetricField, SortFieldAsc, SortFieldDesc } from '../tabulate/aggTypes.js';
+import { DimensionField, MetricField, SortFieldAsc, SortFieldDesc } from '../../result/tabulate/aggTypes.js';
 
 /**
  * Generates DSV content for aggregated results.

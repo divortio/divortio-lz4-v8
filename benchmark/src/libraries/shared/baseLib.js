@@ -22,6 +22,15 @@ export class BaseLib {
         this.lib = null;
     }
 
+    toJSON() {
+        return {
+            name: this.name,
+            package: this.package,
+            environment: this.environment,
+            language: this.language
+        };
+    }
+
     /**
      * Dynamically imports the library.
      * Must be implemented by subclasses to set this.lib.
