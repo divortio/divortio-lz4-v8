@@ -72,7 +72,7 @@ Structural changes or experimental optimizations. These carry higher risk of reg
 | **0.0** | Baseline | **Done** | - | 91.5 MB/s | - | - | [00_baseline.md](00_baseline.md) |
 | **fct-1a** | Zero Alloc (`subarray`) | **Executed** | 91.5 MB/s | ~92.2 MB/s | +0.7% | **Accepted** | [Link](01_compressBlock.fct-1a.md) |
 | **fct-1b** | Monomorphism (Copy) | **Executed** | 92.2 MB/s | ~81.7 MB/s | -11.4% | **Rejected** | [Link](01_compressBlock.fct-1b.md) |
-| **thy-1a** | Manual Inlining | Pending | | | | |
+| **thy-1a** | Manual Inlining | **Executed** | 91.5 MB/s | **~106 MB/s** | **+16%** | **Accepted** | [Link](01_compressBlock.thy-1a.md) |
 | **thy-2a** | `BlockCompressor` Class | Pending | | | | |
 
 ## 5. Conclusions

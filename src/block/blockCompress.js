@@ -9,8 +9,9 @@
  * * @module blockCompress
  */
 
-import { encodeLiterals } from "./blockLiterals.js";
-import { encodeMatch } from "./blockMatch.js";
+// Imports removed for Manual Inlining (thy-1a)
+// import { encodeLiterals } from "./blockLiterals.js";
+// import { encodeMatch } from "./blockMatch.js";
 
 // --- Constants (Localized for V8 Immediates) ---
 const LAST_LITERALS = 5 | 0;
@@ -61,6 +62,8 @@ export function compressBlock(src, output, srcStart, srcLen, hashTable, outputOf
     var offset = 0 | 0;
 
     // --- Main Compression Loop ---
+    // Note: Helper functions (encodeLiterals, encodeMatch) are manually inlined here (thy-1a).
+    // This removes call overhead and allows TurboFan to see the entire loop scope for optimization.
     while (sIndex < mflimit) {
         // 1. Read 32-bit Sequence
         // Note: TypedArray access `src[sIndex]` is optimized by V8 if sIndex is SMI.
@@ -96,21 +99,37 @@ export function compressBlock(src, output, srcStart, srcLen, hashTable, outputOf
         // Match found: Reset search skip
         searchMatchCount = (1 << 6) + 3;
 
-        // --- Encode Literals ---
+        // --- Encode Literals (Inlined) ---
         litLen = (sIndex - mAnchor) | 0;
-        tokenPos = dIndex; // Capture position for Token
+        tokenPos = dIndex++;
 
-        // Delegate to optimized Literal Encoder
-        // dIndex is updated to the position AFTER literals are written
-        dIndex = encodeLiterals(output, dIndex, src, mAnchor, litLen);
+        // 1. Write Literal Length
+        if (litLen >= 15) {
+            output[tokenPos] = 0xF0;
+            var l = (litLen - 15) | 0;
+            while (l >= 255) {
+                output[dIndex++] = 255;
+                l = (l - 255) | 0;
+            }
+            output[dIndex++] = l;
+        } else {
+            output[tokenPos] = (litLen << 4);
+        }
 
-        // --- Encode Match ---
+        // 2. Copy Literals (Zero Alloc Loop)
+        if (litLen > 0) {
+            var litSrc = mAnchor | 0;
+            var litEnd = (dIndex + litLen) | 0;
+            while (dIndex < litEnd) {
+                output[dIndex++] = src[litSrc++];
+            }
+        }
+
+        // --- Encode Match (Inlined) ---
         sPtr = (sIndex + 4) | 0;
         mPtr = (mIndex + 4) | 0;
 
         // Count Match Length
-        // "sPtr < matchLimit" is the bounds check.
-        // "src[sPtr] === src[mPtr]" is the content check.
         while (sPtr < matchLimit && src[sPtr] === src[mPtr]) {
             sPtr = (sPtr + 1) | 0;
             mPtr = (mPtr + 1) | 0;
@@ -119,18 +138,53 @@ export function compressBlock(src, output, srcStart, srcLen, hashTable, outputOf
         matchLen = (sPtr - sIndex) | 0;
         offset = (sIndex - mIndex) | 0;
 
-        // Delegate to optimized Match Encoder
-        dIndex = encodeMatch(output, dIndex, tokenPos, matchLen, offset);
+        // 1. Write Offset
+        output[dIndex++] = offset & 0xff;
+        output[dIndex++] = (offset >>> 8) & 0xff;
+
+        // 2. Write Match Length
+        var lenCode = (matchLen - 4) | 0;
+        if (lenCode >= 15) {
+            output[tokenPos] |= 0x0F;
+            var l2 = (lenCode - 15) | 0;
+            while (l2 >= 255) {
+                output[dIndex++] = 255;
+                l2 = (l2 - 255) | 0;
+            }
+            output[dIndex++] = l2;
+        } else {
+            output[tokenPos] |= lenCode;
+        }
 
         // Advance Anchor
         sIndex = sPtr;
         mAnchor = sPtr;
     }
 
-    // --- Final Literals (Tail) ---
+    // --- Final Literals (Tail) Inlined ---
     var finalLitLen = (sEnd - mAnchor) | 0;
+    tokenPos = dIndex++;
 
-    dIndex = encodeLiterals(output, dIndex, src, mAnchor, finalLitLen);
+    if (finalLitLen >= 15) {
+        output[tokenPos] = 0xF0;
+        var lFn = (finalLitLen - 15) | 0;
+        while (lFn >= 255) {
+            output[dIndex++] = 255;
+            lFn = (lFn - 255) | 0;
+        }
+        output[dIndex++] = lFn;
+    } else {
+        output[tokenPos] = (finalLitLen << 4);
+    }
+
+    // Copy Final
+    if (finalLitLen > 0) {
+        var litSrcFn = mAnchor | 0;
+        var litEndFn = (dIndex + finalLitLen) | 0;
+        while (dIndex < litEndFn) {
+            output[dIndex++] = src[litSrcFn++];
+        }
+    }
 
     return (dIndex - outputOffset) | 0;
 }
