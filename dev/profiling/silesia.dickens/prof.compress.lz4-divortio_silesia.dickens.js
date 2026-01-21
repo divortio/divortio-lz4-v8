@@ -26,8 +26,8 @@ const args = [
     'profile', 'compress',
     '-l', 'v8.js.lz4Divortio',  // Adjust if library name differs in `bench.js libs`
     '-c', 'silesia.dickens',
-    '-s', '5',
-    '-w', '1',
+    '-s', '10',
+    '-w', '5',
     '--meta',
     '--metaMd',
     '--diagnostic-dir', outputDir
