@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // Central Cache Directory
-export const CACHE_DIR = path.resolve(__dirname, '../../../.cache/corpus');
+export const CACHE_DIR = path.resolve(__dirname, '../../../../.cache/corpus');
 
 export class BaseCorpus {
     /**

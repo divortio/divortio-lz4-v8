@@ -64,7 +64,9 @@ export class BenchConfigInputs {
     }
 
     async _ensureCorpus(name) {
-        const corpus = CorpusCatalog.get(name);
+        // Handle dot notation (e.g. silesia.dickens -> silesia)
+        const corpusKey = name.includes('.') ? name.split('.')[0] : name;
+        const corpus = CorpusCatalog.get(corpusKey);
         if (!corpus) {
             console.warn(`Warning: Unknown corpus '${name}'. Skipping auto-cache.`);
             return;
