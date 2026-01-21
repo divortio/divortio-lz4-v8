@@ -71,6 +71,7 @@ export function showHelp(command) {
     roundtrip     Run roundtrip (compress -> decompress) benchmarks
     libs          List available libraries
     corpus        List available corpus files
+    profile       Profile operations (compress, decompress, roundtrip) without benchmark measurement
 
   Options:
     -l, --library <name>    Library to test (e.g. v8.js.lz4Divortio, pako). Can be repeated.

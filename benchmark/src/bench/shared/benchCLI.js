@@ -26,7 +26,11 @@ export function parseArgs() {
     const config = {
         libraryNames: [], // Array of library strings
         inputNames: [],
+        inputNames: [],
         corpusNames: [],
+        formats: [],
+        output: null,
+        append: false,
         samples: 5,
         warmups: 2,
         isHelp: false
@@ -62,6 +66,26 @@ export function parseArgs() {
             case '-w':
                 config.warmups = parseInt(next, 10);
                 i++;
+                break;
+            case '--formats':
+            case '-f':
+                config.formats.push(next);
+                i++;
+                break;
+            case '--output':
+            case '-o':
+                config.output = next;
+                i++;
+                break;
+            case '--append':
+            case '-a':
+                config.append = true;
+                break;
+            case '--meta':
+                config.meta = true;
+                break;
+            case '--metaMd':
+                config.metaMd = true;
                 break;
             case '--help':
             case '-h':

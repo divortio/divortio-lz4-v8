@@ -13,7 +13,7 @@ import * as compressHandler from './src/cli/cliCompress.js';
 import * as decompressHandler from './src/cli/cliDecompress.js';
 import * as cliList from './src/cli/cliList.js';
 import * as cliListLibs from './src/cli/cliListLibs.js';
-// cliListCorpus removed (replaced by benchCorpus)
+import * as cliProfile from './src/cli/cliProfile.js';
 
 import * as roundtripHandler from './src/cli/cliRoundtrip.js';
 import { BenchCorpus as corpusHandler } from './src/corpus/benchCorpus.js';
@@ -34,6 +34,19 @@ switch (config.command) {
         break;
     case 'roundtrip':
         roundtripHandler.run(config);
+        break;
+    case 'profile':
+        // Expect subcommand in config.unknown[0] (since cliArgs treats it as unknown flag)
+        const sub = config.unknown && config.unknown.length > 0 ? config.unknown[0] : null;
+        if (!sub) {
+            console.error("Profile requires a subcommand (compress, decompress, roundtrip)");
+            process.exit(1);
+        }
+        if (!['compress', 'decompress', 'roundtrip'].includes(sub)) {
+            console.error(`Unknown profile subcommand: ${sub}`);
+            process.exit(1);
+        }
+        cliProfile.run(sub);
         break;
     case 'libs':
     case 'libraries':

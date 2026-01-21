@@ -60,7 +60,13 @@ export function resolveLibrary(rawName) {
         // Helper to search case-insensitive
         const search = (cat) => {
             const keys = Object.keys(cat);
-            const found = keys.find(k => k.toLowerCase() === target);
+            // Robust matching: strip hyphens/underscores/dots?
+            // Actually target (parts[last]) might already be stripped of dots by split?
+            // normalize: lower case, remove - and _
+            const normalize = (s) => s.toLowerCase().replace(/[-_]/g, '');
+            const targetNorm = normalize(target);
+
+            const found = keys.find(k => normalize(k) === targetNorm);
             // Unwrap BenchLib to get the actual BaseLib instance
             return found ? cat[found].class : null;
         };
@@ -73,7 +79,9 @@ export function resolveLibrary(rawName) {
     if (catalog && libKey) {
         // Case-insensitive lookup in specific catalog
         const keys = Object.keys(catalog);
-        const foundKey = keys.find(k => k.toLowerCase() === libKey);
+        const normalize = (s) => s.toLowerCase().replace(/[-_]/g, '');
+        const targetNorm = normalize(libKey);
+        const foundKey = keys.find(k => normalize(k) === targetNorm);
         // Unwrap BenchLib to get the actual BaseLib instance
         if (foundKey) return catalog[foundKey].class;
     }

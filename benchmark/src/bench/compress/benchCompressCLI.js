@@ -4,8 +4,12 @@
  * CLI Entrypoint for Single-File Multi-Library Compression Benchmarks.
  */
 
-import { parseArgs, resolveLibraries, resolveInput } from '../shared/benchCLI.js';
+import { parseArgs, resolveInputs } from '../shared/benchCLI.js';
+import { resolveLibraries } from '../../cli/cliLibs.js';
 import { BenchCompressInProc } from './benchCompressInProc.js';
+import { BenchConfig } from '../shared/benchConfig.js';
+import { BenchResults } from '../../result/benchResults.js';
+import { JSONBenchResults } from '../../report/json/jsonBenchResults.js';
 
 async function main() {
     try {
@@ -23,18 +27,36 @@ async function main() {
         const inputName = config.inputNames[0];
         if (!inputName) throw new Error("Input file required (-i)");
 
-        const inputFile = resolveInput(inputName);
+        const inputFiles = resolveInputs([inputName]);
+        const inputFile = inputFiles[0];
 
+        // Run Benchmark
         const bench = new BenchCompressInProc(libraries, inputFile, config.samples, config.warmups);
         const resultsMap = await bench.run();
 
-        // Output: { "libName": [samples...] }
-        const output = {};
-        for (const [libName, results] of Object.entries(resultsMap)) {
-            output[libName] = results.all.map(r => r.toJSON());
+        // Create BenchConfig for Results Metadata
+        const benchConfig = new BenchConfig(
+            config.libraryNames,
+            [inputName],
+            config.samples,
+            config.warmups,
+            { formats: config.formats }
+        );
+
+        // Wrap in BenchResults (Calculates Aggregations & Summary)
+        const benchResults = new BenchResults(benchConfig);
+        benchResults.setResults(resultsMap);
+
+        // File Output (if requested)
+        if (config.output) {
+            JSONBenchResults.generate(benchResults, {
+                filename: config.output,
+                isAppend: config.append
+            });
         }
 
-        console.log(JSON.stringify(output));
+        // Console Output (Standardized)
+        console.log(JSON.stringify(benchResults.toJSON(), null, 2));
 
     } catch (error) {
         console.error(error.message);
