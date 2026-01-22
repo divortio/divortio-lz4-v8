@@ -97,6 +97,8 @@ export function compressBuffer(input, dictionary = null, maxBlockSize = 4194304,
 
     // --- 2. Compression Loop ---
 
+    // --- 2. Compression Loop ---
+
     const hashTable = GLOBAL_HASH_TABLE;
 
     // Dictionary Warming Strategy
