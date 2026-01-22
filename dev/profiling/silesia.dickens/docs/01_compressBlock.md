@@ -73,7 +73,33 @@ Structural changes or experimental optimizations. These carry higher risk of reg
 | **fct-1a** | Zero Alloc (`subarray`) | **Executed** | 91.5 MB/s | ~92.2 MB/s | +0.7% | **Accepted** | [Link](01_compressBlock.fct-1a.md) |
 | **fct-1b** | Monomorphism (Copy) | **Executed** | 92.2 MB/s | ~81.7 MB/s | -11.4% | **Rejected** | [Link](01_compressBlock.fct-1b.md) |
 | **thy-1a** | Manual Inlining | **Executed** | 91.5 MB/s | **~106 MB/s** | **+16%** | **Accepted** | [Link](01_compressBlock.thy-1a.md) |
-| **thy-2a** | `BlockCompressor` Class | Pending | | | | |
+| **thy-1b** | Flatten `Math.imul` | **Executed** | ~106 MB/s | ~100 MB/s | -5% | **Rejected** | [Link](01_compressBlock.thy-1b.md) |
+| **thy-2a** | `BlockCompressor` Class | **Executed** | ~93.6 MB/s | ~108.1 MB/s | -12% | **Rejected** | [Link](01_compressBlock.thy-2a.md) |
 
 ## 5. Conclusions
 *To be populated after experiments.*
+
+## 6. Phase 2: Diagnostics & Advanced Refactoring
+We have achieved a 16% speedup via Inlining (`thy-1a`), but the function remains **Interpreted**. To unlock TurboFan, we need to know *why* it's bailing out.
+
+### Diagnostics (`dia`)
+#### Experiment `dia-1`: V8 Tracing
+**Hypothesis**: The "Interpreted" status is due to a hidden deopt loop or an optimization bailout (e.g., "Function too big" or "Unsupported opcode").
+**Action**: Run benchmark with V8 flags: `--trace-opt --trace-deopt --trace-bailout`.
+**Goal**: Capture the exact reason V8 refuses to optimize `compressBlock`.
+
+### Theories (`thy`) - Phase 2
+#### Experiment `thy-3a`: Hot Loop Isolation
+**Hypothesis**: The manual inlining (`thy-1a`) made the function very large. V8 might be refusing to optimize it due to bytecode size limits or control flow complexity.
+**Action**: Extract the *inner* hot loop (the `while (sIndex < mflimit)` part) into a separate, smaller function, passing only necessary context.
+**Goal**: Reduce the "optimization unit" size to encourage TurboFan to pick it up.
+
+#### Experiment `thy-3b`: Int32Array Monomorphism (Hash Table)
+**Hypothesis**: If `hashTable` is accidentally becoming polymorphic (e.g., different TypedArray constructors in test environment), it could block optimization.
+**Action**: Verify `hashTable` is strictly `Int32Array` and maybe cache the constructor checks. (Low probability, given `fct-1b` results).
+
+## 7. Experiment Log (Phase 2)
+| ID | Experiment | Status | Baseline | Result | Diff | Decision | Link |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **dia-1** | V8 Tracing | **Executed** | - | - | - | **Confirmed (OSR)** | [Link](01_compressBlock.dia-1.md) |
+| **thy-3a** | Hot Loop Split | Pending | - | - | - | - | - |
