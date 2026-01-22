@@ -37,6 +37,8 @@ export function compressBlock(src, output, srcStart, srcLen, hashTable, outputOf
     var sIndex = srcStart | 0;
     var dIndex = outputOffset | 0;
 
+
+
     // Derived bounds
     var sEnd = (srcStart + srcLen) | 0;
     var mflimit = (sEnd - MF_LIMIT) | 0;
@@ -48,7 +50,7 @@ export function compressBlock(src, output, srcStart, srcLen, hashTable, outputOf
     var searchMatchCount = (1 << 6) + 3; // Start at 67
     var mStep = 0 | 0;
 
-    // Hot Loop Variables (Pre-declared for register allocation hints)
+    // Hot Loop Variables
     var seq = 0 | 0;
     var hash = 0 | 0;
     var mIndex = 0 | 0;
@@ -75,22 +77,20 @@ export function compressBlock(src, output, srcStart, srcLen, hashTable, outputOf
         hash = (Math.imul(seq, HASH_MULTIPLIER) >>> HASH_SHIFT) | 0;
 
         // 3. Lookup Match
-        // hashTable is Int32Array, so reads are typed.
+        // Hash table is Int32Array, access is fast if hash is SMI.
         mIndex = (hashTable[hash] - 1) | 0;
 
         // 4. Update Hash Table
+        // Store current position (+1)
         hashTable[hash] = (sIndex + 1) | 0;
 
         // 5. Verify Match
-        // We perform multiple integer checks. The `>>> 16` check efficiently verifies
-        // if the distance is within 65535 (64KB window).
         if (mIndex < 0 ||
             sIndex === mIndex ||
             ((sIndex - mIndex) >>> 16) > 0 ||
             (src[mIndex] | (src[mIndex + 1] << 8) | (src[mIndex + 2] << 16) | (src[mIndex + 3] << 24)) !== seq) {
 
-            // No match found: Skip forward
-            // The skip algorithm increases step size as we fail to find matches.
+            // No match found
             mStep = (searchMatchCount++ >> 6) | 0;
             sIndex = (sIndex + mStep) | 0;
             continue;
@@ -129,7 +129,6 @@ export function compressBlock(src, output, srcStart, srcLen, hashTable, outputOf
         sPtr = (sIndex + 4) | 0;
         mPtr = (mIndex + 4) | 0;
 
-        // Count Match Length
         while (sPtr < matchLimit && src[sPtr] === src[mPtr]) {
             sPtr = (sPtr + 1) | 0;
             mPtr = (mPtr + 1) | 0;
@@ -161,9 +160,11 @@ export function compressBlock(src, output, srcStart, srcLen, hashTable, outputOf
         mAnchor = sPtr;
     }
 
+
+
     // --- Final Literals (Tail) Inlined ---
     var finalLitLen = (sEnd - mAnchor) | 0;
-    tokenPos = dIndex++;
+    var tokenPos = dIndex++;
 
     if (finalLitLen >= 15) {
         output[tokenPos] = 0xF0;

@@ -102,4 +102,5 @@ We have achieved a 16% speedup via Inlining (`thy-1a`), but the function remains
 | ID | Experiment | Status | Baseline | Result | Diff | Decision | Link |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **dia-1** | V8 Tracing | **Executed** | - | - | - | **Confirmed (OSR)** | [Link](01_compressBlock.dia-1.md) |
-| **thy-3a** | Hot Loop Split | Pending | - | - | - | - | - |
+| **thy-3b** | Int32Array Monomorphism | **Executed** | ~106 MB/s | ~88.6 MB/s | -16% | **Rejected** | [Link](01_compressBlock.thy-3b.md) |
+| **thy-3a** | Hot Loop Split | **Executed** | ~106 MB/s | ~102 MB/s | -4% | **Rejected** | [Link](01_compressBlock.thy-3a.md) |
