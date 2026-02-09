@@ -11,40 +11,127 @@ import path from 'path';
 import crypto from 'crypto';
 
 export class InputFile {
+
+    /**
+     * @type {string}
+     */
+    corpus;
+
+    /**
+     * @type {string}
+     */
+    path;
+
+    /**
+     * @type {string}
+     */
+    dirname;
+
+    /**
+     * @type {string}
+     */
+    filename;
+
+    /**
+     * @type {string}
+     */
+    extension;
+
+    /**
+     * @type {string}
+     */
+    description;
+
+    /**
+     * @type {string}
+     */
+    url;
+
+
+    /**
+     *
+     * @type {fs.Stats}
+     * @private
+     */
+    _stat = null;
+    /**
+     *
+     * @type {NonSharedBuffer|Buffer}
+     * @private
+     */
+    _buffer = null;
+    /**
+     *
+     * @type {{}}
+     * @private
+     */
+    _hashes = {};
+
+    /**
+     *
+     * @type {number}
+     * @private
+     */
+    _expectedSize = 0;
+
+
+
     /**
      * Creates an InputFile instance.
      * @param {string} filePath - Absolute or relative path to the file.
-     * @param {string} [corpusName='FILE'] - Name of the corpus or 'FILE' if standalone.
+     * @param {string} [corpus='FILE'] - Name of the corpus or 'FILE' if standalone.
+     * @param {number} [size=0] - optional size in bytes to validate
+     * @param  {string|null} [description=null] - optional description of the file
+     * @param  {string|null} [url=null] -
+     *
      */
-    constructor(filePath, corpusName = 'FILE') {
+    constructor(filePath,
+                corpus ='FILE',
+                size=0,
+                description=null,
+                url = null
+    ) {
         if (typeof filePath !== 'string' || filePath.trim() === '') {
             throw new Error('Invalid argument: filePath must be a non-empty string.');
         }
-
-        /** @type {string} */
-        this.corpusName = corpusName;
-
-        // Path Parsing
+        this.corpus = corpus;
         this.path = path.resolve(filePath);
         this.dirname = path.dirname(this.path);
         this.filename = path.basename(this.path);
         this.extension = path.extname(this.path);
-
-        // Internal Cache
-        this._stat = null;     // Cached fs.Stats
-        this._buffer = null;   // Cached content (Buffer)
-        this._hashes = {};     // Cached hashes { md5: '...', sha1: '...' }
+        this.description = description;
+        this.url = url;
+        this._expectedSize = (Number.isInteger(size) && size > 0) ? size : 0;
     }
 
+    /**
+     *
+     * @returns {{corpus: string, filename: string, description: string, size: number, sizeH: string, path: string, extension: string, exists: boolean}}
+     */
     toJSON() {
         return {
+            corpus: this.corpus,
             filename: this.filename,
-            path: this.path,
-            corpusName: this.corpusName,
+            description: this.description,
             size: this.size, // triggers stat
             sizeH: this.sizeH,
-            extension: this.extension
+            path: this.path,
+            extension: this.extension,
+            exists: this.exists
         };
+    }
+
+    /**
+     * Deletes the file from the filesystem
+     * @return {boolean}
+     */
+    remove() {
+        try {
+            if (fs.existsSync(this.path)) fs.unlinkSync(this.path);
+            return true;
+        } catch (e) {
+            return false
+        }
     }
 
     /**
