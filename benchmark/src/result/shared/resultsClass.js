@@ -1,4 +1,6 @@
-import { ResultClass } from './resultClass.js';
+import {ResultClass} from './resultClass.js';
+import fs from "fs";
+import {CompressionResult} from "../compression/compressionResult.js";
 
 /**
  * @class ResultsClass
@@ -6,23 +8,59 @@ import { ResultClass } from './resultClass.js';
  * Provides aggregation and statistical analysis.
  */
 export class ResultsClass {
+
+    /** @type {string} */
+    name;
+
+    /** @type {string} */
+
+    type;
+
+    /** @type {ResultClass[]} */
+    _samples = [];
+
     /**
-     * @param {ResultClass[]} [initialResults=[]] - Optional array of ResultClass objects.
+     *
+     * @type {Number}
      */
-    constructor(initialResults = []) {
-        /** @type {ResultClass[]} */
-        this._samples = [];
+    _mean;
+    /**
+     *
+     * @type {Number}
+     */
+    _median;
+    /**
+     *
+     * @type {Number}
+     */
+    _stdDev;
+    /**
+     *
+     * @type {ResultClass}
+     */
+    _fastest;
 
-        // Cached stats
-        this._mean = undefined;
-        this._median = undefined;
-        this._stdDev = undefined;
-        this._fastest = undefined;
-        this._slowest = undefined;
+    /**
+     *
+     * @type {ResultClass}
+     */
+    _slowest;
 
-        if (Array.isArray(initialResults)) {
-            for (const result of initialResults) {
-                this.addResult(result);
+    /**
+     * @param type {string|null}
+     * @param name {string|null}
+     * @param results {ResultClass[]} - Optional array of ResultClass objects.
+     */
+    constructor(type = null, name = null, results = []) {
+        if (name && name instanceof String && name.length > 0) {
+            this.name = name;
+        }
+        if (type && type instanceof String && type.length > 0) {
+            this.type = type;
+        }
+        if (Array.isArray(results)) {
+            for (const result of results) {
+                this.add(result);
             }
         }
     }
@@ -31,7 +69,7 @@ export class ResultsClass {
      * Adds a result to the collection.
      * @param {ResultClass} result
      */
-    addResult(result) {
+    add(result) {
         if (!(result instanceof ResultClass)) {
             throw new Error('Invalid argument: Must be instance of ResultClass');
         }
@@ -68,25 +106,25 @@ export class ResultsClass {
     }
 
     /**
-     * The sample with highest throughput.
-     * @returns {ResultClass|null}
+     * The sample with the highest throughput.
+     * @returns {ResultClass}
      */
     get fastest() {
         if (this._fastest === undefined && this.count > 0) {
             this._fastest = this.getSorted('throughput', 'desc')[0];
         }
-        return this._fastest || null;
+        return this._fastest
     }
 
     /**
-     * The sample with lowest throughput.
-     * @returns {ResultClass|null}
+     * The sample with the lowest throughput.
+     * @returns {ResultClass}
      */
     get slowest() {
         if (this._slowest === undefined && this.count > 0) {
             this._slowest = this.getSorted('throughput', 'asc')[0];
         }
-        return this._slowest || null;
+        return this._slowest;
     }
 
     /**
@@ -177,10 +215,12 @@ export class ResultsClass {
 
     /**
      * Summary object.
-     * @returns {object}
+     * @returns {{name: string, type: string, samples: {name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number}[], count: number, fastest: (string | string), slowest: (string | string), mean: string, median: string, p95: string, stdDev: string}}
      */
     toJSON() {
         return {
+            name: this.name,
+            type: this.type,
             samples: this._samples.map(s => s.toJSON()),
             count: this.count,
             fastest: this.fastest ? this.fastest.throughputH : 'N/A',
@@ -189,6 +229,51 @@ export class ResultsClass {
             median: ResultClass.formatBytes(this.median) + '/s',
             p95: ResultClass.formatBytes(this.getPercentile(95)) + '/s',
             stdDev: this.stdDev.toFixed(2)
-        };
-    };
-};
+        }
+    }
+
+    /**
+     * Creates a CompressionResults instance from JSON data (array of samples).
+     * @param {{name: string, type: string, samples: ResultClass[]}} data
+     * @returns {ResultsClass}
+     */
+    static fromJSON(data) {
+        let samples = [];
+        if (Array.isArray(data)) {
+            samples = data;
+        } else if (data && Array.isArray(data.samples)) {
+            samples = data.samples;
+        } else {
+            throw new Error('Invalid JSON: expected array of samples or object with samples field');
+        }
+        const t = (data.type && data.type instanceof String && data.type.length > 0) ? data.type : null;
+        const n = (data.name && data.name instanceof String && data.name.length > 0) ? data.name : null;
+        const results = new ResultsClass(t, n);
+        for (const s of samples) {
+            results.add(new ResultClass(
+                s.type,
+                s.name,
+                s.inputSize,
+                s.outputSize,
+                s.startTime,
+                s.endTime,
+                s.timestampStart,
+                s.timestampEnd
+            ));
+        }
+        return results;
+    }
+
+    /**
+     * Creates a CompressionResults instance from a JSON file.
+     * @param {string} filePath
+     * @returns {ResultsClass}
+     */
+    static fromJSONFile(filePath) {
+        const content = fs.readFileSync(filePath, 'utf-8');
+        const samples = JSON.parse(content);
+        return ResultsClass.fromJSON(samples);
+    }
+
+
+}

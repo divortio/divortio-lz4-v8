@@ -9,7 +9,7 @@ export class ProfileResult {
      * @param {string} libraryName
      * @param {string} operation - compress, decompress, roundtrip
      * @param {number} inputSize - Total input size in bytes
-     * @param {number} durationMs - Wall clock duration of the profile run
+     * @param {number} durationMs - Wall clock duration of the profile listLibs
      * @param {string} tickLogPath - Path to the simplified tick log
      * @param {string} processedLogPath - Path to the processed JSON log
      */

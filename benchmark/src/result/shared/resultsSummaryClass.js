@@ -4,6 +4,7 @@
  * Container for High-Level Benchmark Summary.
  */
 
+import {BenchResults} from "../benchResults.js";
 import { Aggregator } from '../tabulate/aggResults.js';
 
 export class ResultsSummaryClass {

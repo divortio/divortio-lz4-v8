@@ -13,11 +13,11 @@ export function generateConfigDSV(config, options = {}) {
         warmups: config.warmups,
         libraries: config.libs.getNames().join('|'), // Using different separator within field?
         inputs: config.inputs.getFileNames().join('|'),
-        ...config.misc
+        ...config.options
     };
 
     // Define columns dynamically based on keys, or fixed?
-    // Dynamic is flexible for misc args.
+    // Dynamic is flexible for options args.
     const keys = Object.keys(row);
     const columns = keys.map(k => ({ header: k, key: k }));
 

@@ -1,7 +1,7 @@
 /**
  * benchmark/src/result/benchResults.js
  * 
- * Top-level container for all data related to a benchmark run.
+ * Top-level container for all data related to a benchmark listLibs.
  * Includes configuration, system info, timestamps, and the results themselves.
  */
 
@@ -10,9 +10,11 @@ import { BenchSysInfo } from '../bench/shared/benchSysInfo.js';
 import { ResultsAggClass } from './shared/resultsAggClass.js';
 import { ResultsSummaryClass } from './shared/resultsSummaryClass.js';
 
+import {ResultsClass} from "./shared/resultsClass.js";
+
 export class BenchResults {
     /**
-     * @param {Config} config 
+     * @param {BenchConfig} config
      */
     constructor(config) {
         this.config = config;
@@ -26,7 +28,7 @@ export class BenchResults {
 
     /**
      * Sets the benchmark execution results.
-     * @param {object} resultsMap 
+     * @param {[ResultsClass]} resultsMap
      */
     setResults(resultsMap) {
         this.results = resultsMap;
@@ -37,6 +39,10 @@ export class BenchResults {
         this.summary = new ResultsSummaryClass(this);
     }
 
+    /**
+     *
+     * @returns {{meta: {startTime: Date, endTime: null, durationMs: (number|number)}, system: {timestamp: *, system: *}, config: {libs: *, inputs: *, samples: *, warmups: *, options: *}, summary: (*|null), resultsAgg: (*|null), results: (*|{})}}
+     */
     toJSON() {
         return {
             meta: {

@@ -16,7 +16,7 @@ export class DecompressionResult extends ResultClass {
      * @param {number} timestampEnd - UNIX end timestamp (ms).
      */
     constructor(name, inputSize, outputSize, startTime, endTime, timestampStart, timestampEnd) {
-        super(name, inputSize, outputSize, startTime, endTime, timestampStart, timestampEnd);
+        super(undefined, name, inputSize, outputSize, startTime, endTime, timestampStart, timestampEnd);
     }
 
     /**

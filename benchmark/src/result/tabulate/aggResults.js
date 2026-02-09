@@ -4,14 +4,14 @@
  * Provides SQL-like aggregation capabilities for Benchmark Results.
  * Supports Group By (dimensions), Metrics, Aggregations, and Sorting.
  */
-
+import {BenchResults} from "../benchResults.js";
 import { sortData } from '../../report/dsv/dsvBase.js'; // Reuse generic sort if needed, but we'll specific multi-sort here.
 
 export class Aggregator {
     /**
      * Aggregates benchmark results.
      * 
-     * @param {object} benchResults - The BenchResults object.
+     * @param {BenchResults} benchResults - The BenchResults object.
      * @param {Array<import('./aggTypes.js').DimensionField>} dimensions
      * @param {Array<import('./aggTypes.js').MetricField>} metrics
      * @param {Array<import('./aggTypes.js').SortFieldAsc|import('./aggTypes').SortFieldDesc>} orderBy
@@ -77,7 +77,7 @@ export class Aggregator {
                         if (matchedMetric) {
                             rowKey = matchedMetric.as || Aggregator.getFieldName(matchedMetric.name, aggNorm);
                         } else {
-                            // If not in metrics list but requested in sort, we might not have it in row?
+                            // If not in metrics listCorpora but requested in sort, we might not have it in row?
                             // Generically try generated name
                             rowKey = Aggregator.getFieldName(sortF.name, aggNorm);
                         }
@@ -105,6 +105,8 @@ export class Aggregator {
     /**
      * Extracts all samples from BenchResults into a flat array.
      * Enriches with metadata from BenchConfig.
+     * @param benchResults {BenchResults}
+     * @return {any[]}
      */
     static flattenSamples(benchResults) {
         const samples = [];
@@ -113,7 +115,7 @@ export class Aggregator {
         // Create Metadata Lookup: Semantic Name -> { package, environment, language }
         const libMeta = {};
         if (benchResults.config && benchResults.config.libs) {
-            // We need to access the internal list. BenchConfigLibs exposes getLibraries()
+            // We need to access the internal listCorpora. BenchConfigLibs exposes getLibraries()
             // We assume benchResults restored/has config object with methods?
             // If from JSON, it might be plain object.
             // If pure object, benchResults.config.libs is array of strings. We lose metadata.

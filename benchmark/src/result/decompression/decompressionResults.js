@@ -12,7 +12,7 @@ export class DecompressionResults extends ResultsClass {
      * @param {DecompressionResult[]} [initialResults=[]]
      */
     constructor(initialResults = []) {
-        super(initialResults);
+        super(null, null, initialResults);
     }
 
     /**
@@ -20,11 +20,11 @@ export class DecompressionResults extends ResultsClass {
      * @param {DecompressionResult} result
      * @override
      */
-    addResult(result) {
+    add(result) {
         if (!(result instanceof DecompressionResult)) {
             throw new Error('Invalid argument: Must be instance of DecompressionResult');
         }
-        super.addResult(result);
+        super.add(result);
     }
 
     /**
@@ -44,7 +44,7 @@ export class DecompressionResults extends ResultsClass {
 
         const results = new DecompressionResults();
         for (const s of samples) {
-            results.addResult(new DecompressionResult(
+            results.add(new DecompressionResult(
                 s.name,
                 s.inputSize,
                 s.outputSize,

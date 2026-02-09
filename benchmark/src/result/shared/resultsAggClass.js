@@ -5,6 +5,7 @@
  */
 
 import { Aggregator } from '../tabulate/aggResults.js';
+import {BenchResults} from "../benchResults.js";
 
 export class ResultsAggClass {
     /**
@@ -14,6 +15,10 @@ export class ResultsAggClass {
         this.data = this.calculate(benchResults);
     }
 
+    /**
+     *
+     * @param benchResults {BenchResults}
+     */
     calculate(benchResults) {
         // Standard Aggregation: Group by Library, File
         // Metrics: Throughput (Avg, Med, Max), Ratio (Avg), Duration (Avg)

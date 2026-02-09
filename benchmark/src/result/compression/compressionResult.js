@@ -16,17 +16,6 @@ export class CompressionResult extends ResultClass {
      * @param {number} timestampEnd - UNIX end timestamp (ms).
      */
     constructor(name, inputSize, outputSize, startTime, endTime, timestampStart, timestampEnd) {
-        super(name, inputSize, outputSize, startTime, endTime, timestampStart, timestampEnd);
-    }
-
-    /**
-     * @override
-     * @returns {object}
-     */
-    toJSON() {
-        return {
-            ...super.toJSON(),
-            type: 'Compression'
-        };
+        super('compression', name, inputSize, outputSize, startTime, endTime, timestampStart, timestampEnd);
     }
 }

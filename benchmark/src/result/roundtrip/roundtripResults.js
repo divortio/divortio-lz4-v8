@@ -10,36 +10,53 @@ import { RoundtripResult } from './roundtripResult.js';
 import { CompressionResult } from '../compression/compressionResult.js';
 import { DecompressionResult } from '../decompression/decompressionResult.js';
 
+/**
+ * @class RoundtripResults
+ * @extends ResultsClass
+ */
 export class RoundtripResults extends ResultsClass {
+
     /**
-     * @param {RoundtripResult[]} [initialResults=[]]
+     * @param name {string}
+     * @param initialResults {ResultsClass[]|[]}
      */
-    constructor(initialResults = []) {
-        super(initialResults);
+    constructor(name, initialResults=[]) {
+        super('roundtrip', null, initialResults);
     }
 
     /**
      * Adds a result.
-     * @param {RoundtripResult} result
+     * @param {ResultClass} result
      * @override
      */
-    addResult(result) {
+    add(result) {
         if (!(result instanceof RoundtripResult)) {
             throw new Error('Invalid argument: Must be instance of RoundtripResult');
         }
-        super.addResult(result);
+        super.add(result);
     }
 
     /**
      * Creates a RoundtripResults instance from JSON data (array of samples).
-     * @param {object[]} samples
+     * @override
+     * @param data {{type: string, name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number, compression: {type: string, name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number}, decompression: {type: string, name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number}, isLossless: boolean}}
      * @returns {RoundtripResults}
      */
-    static fromJSON(samples) {
-        if (!Array.isArray(samples)) {
-            throw new Error('Invalid JSON: expected array of samples');
+    static fromJSON(data) {
+
+        let samples = [];
+        if (Array.isArray(data)) {
+            samples = data;
+        } else if (data && Array.isArray(data.samples)) {
+            samples = data.samples;
+        } else {
+            throw new Error('Invalid JSON: expected array of samples or object with samples field');
         }
-        const results = new RoundtripResults();
+
+        const n = (data.name && data.name instanceof String && data.name.length > 0) ? data.name : null;
+
+        const results = new RoundtripResults(n);
+
         for (const s of samples) {
             // Reconstruct component results
             const comp = new CompressionResult(
@@ -47,7 +64,8 @@ export class RoundtripResults extends ResultsClass {
                 s.compression.inputSize,
                 s.compression.outputSize,
                 s.compression.startTime || 0, // Fallback if lost
-                s.compression.endTime || 0
+                s.compression.endTime || 0,
+
             );
             // Manually set duration if needed, but constructor takes start/end
             // We assume the JSON object has what we need or we recalculate.
@@ -62,7 +80,7 @@ export class RoundtripResults extends ResultsClass {
                 s.decompression.endTime || 0
             );
 
-            results.addResult(new RoundtripResult(comp, decomp));
+            results.add(new RoundtripResult(comp, decomp));
         }
         return results;
     }

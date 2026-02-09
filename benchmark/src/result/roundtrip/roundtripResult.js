@@ -8,6 +8,18 @@
 import { ResultClass } from '../shared/resultClass.js';
 
 export class RoundtripResult extends ResultClass {
+
+    /**
+     *
+     * @type {CompressionResult}
+     */
+  compression ;
+    /**
+     *
+     * @type {DecompressionResult}
+     */
+    decompression ;
+
     /**
      * @param {CompressionResult} compressionResult
      * @param {DecompressionResult} decompressionResult
@@ -16,16 +28,25 @@ export class RoundtripResult extends ResultClass {
         // We use the compression result's metadata for the base class
         // Total duration is sum of both components
         // Start time is compression start, End time is decompression end
-        super(
+        super('roundtrip',
             compressionResult.name,
-            compressionResult.inputSize, // Output of roundtrip is original input (ideally)
+            compressionResult.inputSize,
+            decompressionResult.inputSize,
             compressionResult.startTime,
             decompressionResult.endTime,
             compressionResult.timestampStart,
             decompressionResult.timestampEnd
         );
 
+        /**
+         *
+         * @type {CompressionResult}
+         */
         this.compression = compressionResult;
+        /**
+         *
+         * @type {DecompressionResult}
+         */
         this.decompression = decompressionResult;
     }
 
@@ -46,12 +67,57 @@ export class RoundtripResult extends ResultClass {
     }
 
     /**
+     * Creates a CompressionResults instance from JSON data (array of samples).
+     * @param data {{type: string, name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number, compression: {type: string, name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number}, decompression: {type: string, name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number}, isLossless: boolean}}
+     * @returns {ResultsClass}
+     */
+    static fromJSON(data) {
+        let samples = [];
+        if (Array.isArray(data)) {
+            samples = data;
+        } else if (data && Array.isArray(data.samples)) {
+            samples = data.samples;
+        } else {
+            throw new Error('Invalid JSON: expected array of samples or object with samples field');
+        }
+        const t = (data.type && data.type instanceof String && data.type.length > 0) ? data.type : null;
+        const n = (data.name && data.name instanceof String && data.name.length > 0) ? data.name : null;
+        const results = new ResultsClass(t, n);
+        for (const s of samples) {
+            results.add(new ResultClass(
+                s.type,
+                s.name,
+                s.inputSize,
+                s.outputSize,
+                s.startTime,
+                s.endTime,
+                s.timestampStart,
+                s.timestampEnd
+            ));
+        }
+        return results;
+    }
+
+    /**
      * JSON representation.
-     * @returns {object}
+     * @returns {{type: string, name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number, compression: {type: string, name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number}, decompression: {type: string, name: string, inputSize: number, inputSizeH: string, outputSize: number, outputSizeH: string, startTime: number, endTime: number, durationMs: number, throughput: string, throughputBytes: number, ratio: number, timestampStart: number, timestampEnd: number}, isLossless: boolean}}
      */
     toJSON() {
         return {
-            ...super.toJSON(),
+            type: this.type,
+            name: this.name,
+            inputSize: this.inputSize,
+            inputSizeH: this.inputSizeH,
+            outputSize: this.outputSize,
+            outputSizeH: this.outputSizeH,
+            startTime: this.startTime,
+            endTime: this.endTime,
+            durationMs: parseFloat(this.durationMs.toFixed(3)),
+            throughput: this.throughputH,
+            throughputBytes: this.throughput,
+            ratio: this.ratio,
+            timestampStart: this.timestampStart,
+            timestampEnd: this.timestampEnd,
             compression: this.compression.toJSON(),
             decompression: this.decompression.toJSON(),
             isLossless: this.isLossless
