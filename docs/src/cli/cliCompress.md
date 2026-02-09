@@ -7,7 +7,7 @@ Source: [`src/cli/cliCompress.js`](../../../../src/cli/cliCompress.js)
 ## Description
 The "Controller" for the **compress** command.
 
-## Function: `run`
+## Function: `listLibs`
 -   **Flow**:
     1.  Validates files (Input exists? Output overwrite?).
     2.  Loads Dictionary (if specified).

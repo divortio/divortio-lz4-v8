@@ -7,7 +7,7 @@ Source: [`src/cli/cliDecompress.js`](../../../../src/cli/cliDecompress.js)
 ## Description
 The "Controller" for the **decompress** command.
 
-## Function: `run`
+## Function: `listLibs`
 -   **Flow**:
     1.  Validates files.
     2.  Loads Dictionary (if provided).

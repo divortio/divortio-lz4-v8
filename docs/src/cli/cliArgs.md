@@ -12,5 +12,5 @@ Parses raw command-line arguments into a structure consumable by [`CLIConfig`](c
 -   **Output**: [`CLIConfig`](cliConfig.md)
 -   **Logic**:
     -   Detects command (`compress` vs `decompress` vs `help`).
-    -   Iterates through flags (`-o`, `-f`, `-B`, etc.).
+    -   Iterates through flags (`-o`, `-f`, `-B`, `--stream`, etc.).
     -   Handles positional arguments (input file).
