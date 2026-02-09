@@ -33,7 +33,7 @@ node benchmark/bench.js <command> [options]
 
 ## Examples
 
-**Basic run:**
+**Basic listLibs:**
 ```bash
 node benchmark/bench.js compress -l v8.js.lz4Divortio -c silesia
 ```

@@ -34,7 +34,7 @@ node benchmark/bench.js compress -c silesia -l lz4
     *   **JSON**: Machine-readable metrics for CI/CD.
     *   **CSV/TSV**: Detailed logs for analysis.
     *   **Logging**: Stream results to file in real-time.
-*   **Flexible Inputs**: Mix and match local files and corpus files in a single run.
+*   **Flexible Inputs**: Mix and match local files and corpus files in a single listLibs.
 
 ## Documentation Index
 
@@ -72,4 +72,4 @@ node benchmark/bench.js compress -c silesia -l lz4
 
 *   `benchmark/bench.js`: The main entry point CLI script.
 *   `benchmark/src/cli/`: Source code for CLI commands.
-*   `benchmark/.cache/corpus/`: Storage location for downloaded corpora.
+*   `benchmark/.cacheCorpus/corpus/`: Storage location for downloaded corpora.

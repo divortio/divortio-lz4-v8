@@ -17,14 +17,14 @@ node benchmark/bench.js profile <command> [options]
 - `-l, --library <lib>`: (Required) Single library to profile.
 - `-i, --input <file>`: Input file(s).
 - `-c, --corpus <name>`: Corpus name(s).
-- `-s, --samples <n>`: Number of samples to run (to generate sufficient ticks).
+- `-s, --samples <n>`: Number of samples to listLibs (to generate sufficient ticks).
 - `-w, --warmups <n>`: Number of warmups.
 - `--log <file>`: (Optional) Override output log filename.
 - `--diagnostic-dir <dir>`: (Optional) Override output directory.
 
 ## Output
 
-Profiles are generated in `/.cache/profile/<library_safe_name>/`.
+Profiles are generated in `/.cacheCorpus/profile/<library_safe_name>/`.
 Two files are generated:
 1. **Tick Log**: `profTick_<lib>_<timestamp>.v8.log` (Raw V8 tick log)
 2. **Processed JSON**: `profTickProc_<lib>_<timestamp>.v8.log.json` (Processed via `--prof-process --preprocess -j`)

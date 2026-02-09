@@ -4,7 +4,7 @@ The CLI supports Delimiter-Separated Values (DSV) output, specifically Comma-Sep
 
 ## Usage
 
-Use the `-f` or `--format` flag to specify `csv` or `tsv`. You can generate multiple formats in one run.
+Use the `-f` or `--format` flag to specify `csv` or `tsv`. You can generate multiple formats in one listLibs.
 
 ```bash
 node benchmark/bench.js compress ... -f csv
@@ -15,7 +15,7 @@ node benchmark/bench.js compress ... -f md,tsv
 
 Reports are saved to `benchmark/results/` with a name pattern: `report_<timestamp>_<type>.<ext>`.
 
-For each run, two files are generated per format:
+For each listLibs, two files are generated per format:
 
 1.  **Detailed Report** (`..._detailed.csv`):
     -   One row per sample (or file/library pair).

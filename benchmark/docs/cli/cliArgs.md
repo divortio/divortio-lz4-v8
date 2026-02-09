@@ -10,7 +10,7 @@ Documentation for the command-line arguments used by the `benchmark/bench.js` to
 *   `decompress`: Run decompression benchmarks. (See [cliDecompress.md](cliDecompress.md))
 *   `roundtrip`: Run roundtrip (compress -> decompress) benchmarks. (See [cliRoundtrip.md](cliRoundtrip.md))
 *   `indexCorpus`: Build or download corpora. (See [cliBuildCorpus.md](cliBuildCorpus.md))
-*   `list`: List available resources. (See [cliList.md](cliList.md))
+*   `listCorpora`: List available resources. (See [cliList.md](cliList.md))
 *   `libs`: List available libraries. (See [cliListLibs.md](cliListLibs.md))
 *   `corpus`: List available corpora. (See [cliListCorpus.md](cliListCorpus.md))
 *   `profile`: Run profile operations. (See [cliProfile.md](cliProfile.md))
@@ -28,7 +28,7 @@ Documentation for the command-line arguments used by the `benchmark/bench.js` to
 *   `-l, --library <name>`: Specify library to benchmark. Can be repeated.
 *   `-s, --samples <n>`: Number of benchmark samples per test (default: 5).
 *   `-w, --warmup <n>`: Number of warmup runs (default: 2).
-*   `--dry-run`: Simulate execution without running heavy tasks.
+*   `--dry-listLibs`: Simulate execution without running heavy tasks.
 
 ### Logging
 *   `--log [file]`: Enable streaming log to file. (Used as V8 logfile for `profile`).

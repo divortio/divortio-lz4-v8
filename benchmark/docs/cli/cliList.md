@@ -1,11 +1,11 @@
 # CLI Command: List
 
-General list command. Dispatches to specific list types.
+General listCorpora command. Dispatches to specific listCorpora types.
 
 ## Usage
 
 ```bash
-node benchmark/bench.js list <type> [options]
+node benchmark/bench.js listCorpora <type> [options]
 ```
 
 ## Types

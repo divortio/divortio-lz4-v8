@@ -9,14 +9,14 @@
 import { parseArgs } from './src/cli/cliArgs.js';
 import { showHelp } from './src/cli/cliHelp.js';
 
-import * as compressHandler from './src/cli/cliCompress.js';
-import * as decompressHandler from './src/cli/cliDecompress.js';
-import * as cliList from './src/cli/cliList.js';
-import * as cliListLibs from './src/cli/cliListLibs.js';
-import * as cliProfile from './src/cli/cliProfile.js';
+import * as compressHandler from './src/cli/cmd/compress/cliCompress.js';
+import * as decompressHandler from './src/cli/cmd/decompres/cliDecompress.js';
+import * as cliList from './src/cli/cmd/list/cliList.js';
+import * as cliListLibs from './src/cli/cmd/list/cliListLibs.js';
+import * as cliProfile from './src/cli/cmd/profile/cliProfile.js';
 
-import * as roundtripHandler from './src/cli/cliRoundtrip.js';
-import { BenchCorpus as corpusHandler } from './src/corpus/benchCorpus.js';
+import * as roundtripHandler from './src/cli/cmd/roudtrip/cliRoundtrip.js';
+import { BenchCorpus as corpusHandler } from './src/input/corpus/benchCorpus.js';
 
 const config = parseArgs();
 
@@ -50,23 +50,23 @@ switch (config.command) {
         break;
     case 'libs':
     case 'libraries':
-        cliListLibs.run(config);
+        cliListLibs.listLibs(config);
         break;
     case 'corpus':
     case 'corpora':
-        // list or subcommand?
-        // if user types 'bench corpus cache silesia'?
+        // listCorpora or subcommand?
+        // if user types 'bench corpus cacheCorpus silesia'?
         // The args parsing currently puts positional args in... config?
-        // simple `bench corpus` maps to `list`.
+        // simple `bench corpus` maps to `listCorpora`.
         // config.pos? No, `parseArgs` puts non-flag args where?
         // parseArgs logic at Step 2613:
         // libraryNames, inputNames, corpusNames.
         // It doesn't capture sub-sub-commands easily.
-        // But `list` command was specific.
-        // Let's assume `bench corpus` -> list all.
+        // But `listCorpora` command was specific.
+        // Let's assume `bench corpus` -> listCorpora all.
         corpusHandler.list(config);
         break;
-    case 'list':
+    case 'listCorpora':
         cliList.run(config);
         break;
     case 'build':

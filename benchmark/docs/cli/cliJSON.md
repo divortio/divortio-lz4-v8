@@ -21,7 +21,7 @@ The JSON output is wrapped in a `BenchResults` object containing:
 
 - **meta**: Timestamps and duration.
 - **system**: System information (CPU, RAM, Node version).
-- **config**: The configuration used for the run.
+- **config**: The configuration used for the listLibs.
 - **summary**: High-level aggregated stats (Total Duration, Throughput Avg).
 - **resultsAgg**: Aggregated metrics grouped by Library and File.
 - **results**: The raw sample data.

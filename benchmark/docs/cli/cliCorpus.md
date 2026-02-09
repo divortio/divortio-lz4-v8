@@ -28,7 +28,7 @@ We support several reference formats to give you flexibility:
 
 ## Available Corpora
 
-To see the list of available corpora and their contents:
+To see the listCorpora of available corpora and their contents:
 
 ```bash
 node benchmark/bench.js corpus

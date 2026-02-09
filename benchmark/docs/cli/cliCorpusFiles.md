@@ -12,7 +12,7 @@ node benchmark/bench.js compress -c silesia
 
 ## Behavior
 
-*   Expands the corpus name into a list of all contained files.
+*   Expands the corpus name into a listCorpora of all contained files.
 *   The benchmark runner executes the test for each file independently.
 *   Reports will show individual rows for each file.
 

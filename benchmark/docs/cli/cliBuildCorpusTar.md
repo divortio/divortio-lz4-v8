@@ -18,7 +18,7 @@ We implement an **Out-of-Process** generation strategy.
 1.  **Request**: The user requests `-c silesia.tar`.
 2.  **Spawn**: The main process (`corpusTar.js`) spawns a dedicated child process executing `tarCorpus.js`.
 3.  **Generate**: 
-    *   The child process locates the corpus in `.cache/corpus/silesia`.
+    *   The child process locates the corpus in `.cacheCorpus/corpus/silesia`.
     *   It executes `tar -cf silesia.tar *` (using native `tar` where available for speed) inside that directory.
     *   It outputs the final path and size as JSON to STDOUT.
 4.  **Handover**: The main process reads the JSON, verifying the file exists.

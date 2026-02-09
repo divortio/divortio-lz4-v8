@@ -9,7 +9,7 @@ Comprehensive reference for all commands available in the `benchmark/bench.js` C
     *   [`roundtrip`](#roundtrip)
     *   [`indexCorpus`](#buildcorpus)
 *   [Listing Resources](#listing-resources)
-    *   [`list`](#list)
+    *   [`listCorpora`](#list)
     *   [`libs`](#libs-or-libraries)
     *   [`corpus`](#corpus-or-corpora)
 *   [Common Arguments](#common-arguments)
@@ -104,7 +104,7 @@ node benchmark/bench.js indexCorpus [--name <name>]
     ```bash
     node benchmark/bench.js indexCorpus --name lz_flex
     ```
-*   **Rebuild Index**: (Scans `.cache/corpus` and updates `corpus.json`)
+*   **Rebuild Index**: (Scans `.cacheCorpus/corpus` and updates `corpus.json`)
     ```bash
     node benchmark/bench.js indexCorpus
     ```
@@ -115,8 +115,8 @@ node benchmark/bench.js indexCorpus [--name <name>]
 
 ## Listing Resources
 
-### `list`
-General list command. Shows available commands.
+### `listCorpora`
+General listCorpora command. Shows available commands.
 
 **Documentation**: [cliList.md](cliList.md)
 
@@ -146,7 +146,7 @@ node benchmark/bench.js corpus [filter]
 
 *   **Inputs**: `-i <file>`, `-c <corpus>`
 *   **Libraries**: `-l <lib>`
-*   **Execution**: `-s <samples>`, `-w <warmup>`, `--dry-run`
+*   **Execution**: `-s <samples>`, `-w <warmup>`, `--dry-listLibs`
 *   **Reporting**: `--log`, `--log-format`, `-f <format>`, `-o <output>`
 
 See [cliArgs.md](cliArgs.md) for the full argument reference.

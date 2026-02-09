@@ -39,7 +39,7 @@ node benchmark/bench.js compress -c silesia -l lz4
 ```
 
 ## Source
-See [src/cli/cliBuildCorpus.js](../../src/cli/cliBuildCorpus.js).
+See [src/cli/cliBuildCorpus.js](../../src/cli/args/corpus/cliBuildCorpus.js).
 
 ## See Also
 *   [cliArgs.md](cliArgs.md) - Arguments reference.
