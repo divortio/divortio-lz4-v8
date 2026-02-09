@@ -16,13 +16,44 @@ import { ensureBuffer } from "../shared/lz4Util.js";
  * @param {number} [maxBlockSize=4194304] - Target block size in bytes (default 4MB).
  * @param {boolean} [blockIndependence=false] - If false, allows matches across blocks (better compression, slower seeking).
  * @param {boolean} [contentChecksum=false] - If true, appends XXHash32 checksum at the end of the stream.
+ * @param {boolean} [blockChecksum=false] - If true, appends correct ID to blocks.
  * @returns {TransformStream} A web standard TransformStream that accepts Uint8Array chunks and emits compressed LZ4 frames.
  */
-export function createCompressStream(dictionary = null, maxBlockSize = 4194304, blockIndependence = false, contentChecksum = false) {
-    // Initialize Encoder
-    // Note: Arguments must be reordered to match LZ4Encoder's signature:
-    // constructor(maxBlockSize, blockIndependence, contentChecksum, dictionary)
-    const encoder = new LZ4Encoder(maxBlockSize, blockIndependence, contentChecksum, dictionary);
+export function createCompressStream(dictionary = null, arg2 = undefined, arg3 = undefined, arg4 = undefined, arg5 = undefined, arg6 = undefined) {
+    let maxBlockSize = 4194304;
+    let blockIndependence = false;
+    let contentChecksum = false;
+    let blockChecksum = false;
+    let acceleration = 1;
+
+    // Detect Options
+    if (arg2 && typeof arg2 === 'object') {
+        const opts = arg2;
+        if (opts.maxBlockSize !== undefined) maxBlockSize = opts.maxBlockSize;
+        if (opts.blockIndependence !== undefined) blockIndependence = opts.blockIndependence;
+        if (opts.contentChecksum !== undefined) contentChecksum = opts.contentChecksum;
+        if (opts.blockChecksum !== undefined) blockChecksum = opts.blockChecksum;
+        if (opts.acceleration !== undefined) acceleration = opts.acceleration;
+        if (opts.compressionLevel !== undefined) {
+            if (opts.compressionLevel < 0) acceleration = -opts.compressionLevel;
+        }
+    } else {
+        if (arg2 !== undefined) maxBlockSize = arg2;
+        if (arg3 !== undefined) blockIndependence = arg3;
+        if (arg4 !== undefined) contentChecksum = arg4;
+        if (arg5 !== undefined) blockChecksum = arg5;
+        if (arg6 !== undefined) acceleration = arg6;
+    }
+
+    // Pass as options object to LZ4Encoder
+    const encoder = new LZ4Encoder({
+        maxBlockSize,
+        blockIndependence,
+        contentChecksum,
+        blockChecksum,
+        dictionary,
+        acceleration
+    });
 
     return new TransformStream({
         /**

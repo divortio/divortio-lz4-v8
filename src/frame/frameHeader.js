@@ -13,6 +13,7 @@ const LZ4_VERSION = 1;
 
 // FLG Byte Masks
 const FLG_BLOCK_INDEPENDENCE_MASK = 0x20;
+export const FLG_BLOCK_CHECKSUM_MASK = 0x10;
 const FLG_CONTENT_CHECKSUM_MASK = 0x04;
 const FLG_CONTENT_SIZE_MASK = 0x08;
 const FLG_DICT_ID_MASK = 0x01;
@@ -44,11 +45,12 @@ export function getBlockId(bytes) {
  * @param {number} maxBlockSize - Block size (determines BD byte).
  * @param {boolean} blockIndependence - Independent blocks flag.
  * @param {boolean} contentChecksum - Content checksum flag.
+ * @param {boolean} blockChecksum - Block checksum flag.
  * @param {number|null} contentSize - Uncompressed size (if known).
  * @param {number|null} dictId - Dictionary ID (if used).
  * @returns {number} The new offset after writing the header.
  */
-export function writeFrameHeader(output, offset, maxBlockSize, blockIndependence, contentChecksum, contentSize, dictId) {
+export function writeFrameHeader(output, offset, maxBlockSize, blockIndependence, contentChecksum, blockChecksum, contentSize, dictId) {
     let outPos = offset;
 
     // 1. Magic Number (Little Endian)
@@ -61,6 +63,7 @@ export function writeFrameHeader(output, offset, maxBlockSize, blockIndependence
     let flg = (LZ4_VERSION << 6);
     if (blockIndependence) flg |= FLG_BLOCK_INDEPENDENCE_MASK;
     if (contentChecksum) flg |= FLG_CONTENT_CHECKSUM_MASK;
+    if (blockChecksum) flg |= FLG_BLOCK_CHECKSUM_MASK;
     if (dictId !== null && dictId !== undefined) flg |= FLG_DICT_ID_MASK;
     if (contentSize !== null && contentSize !== undefined) flg |= FLG_CONTENT_SIZE_MASK;
     output[outPos++] = flg;

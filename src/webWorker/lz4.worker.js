@@ -17,9 +17,10 @@ import { compressBuffer } from '../buffer/bufferCompress.js';
 import { decompressBuffer } from '../buffer/bufferDecompress.js';
 import { createCompressStream } from '../stream/streamCompress.js';
 import { createDecompressStream } from '../stream/streamDecompress.js';
+import { decompressBlock } from '../block/blockDecompress.js';
 
 // --- TYPE FIX ---
-// Cast 'self' to DedicatedWorkerGlobalScope to enable transfer list TS checks.
+// Cast 'self' to DedicatedWorkerGlobalScope to enable transfer listCorpora TS checks.
 /** @type {DedicatedWorkerGlobalScope} */
 // @ts-ignore
 const workerSelf = self;
@@ -36,12 +37,11 @@ workerSelf.onmessage = async (event) => {
         if (task === 'stream-compress') {
             const { dictionary, maxBlockSize, blockIndependence, contentChecksum } = options || {};
 
-            const transformStream = createCompressStream(
-                dictionary,
+            const transformStream = createCompressStream(dictionary, {
                 maxBlockSize,
                 blockIndependence,
                 contentChecksum
-            );
+            });
 
             await readable
                 .pipeThrough(transformStream)
@@ -74,11 +74,24 @@ workerSelf.onmessage = async (event) => {
 
         if (task === 'compress') {
             const { dictionary, maxBlockSize, blockIndependence, contentChecksum } = options || {};
-            resultTypedArray = compressBuffer(inputData, dictionary, maxBlockSize, blockIndependence, contentChecksum);
+            // Use new Options signature
+            resultTypedArray = compressBuffer(inputData, dictionary, {
+                maxBlockSize,
+                blockIndependence,
+                contentChecksum
+            });
         }
         else if (task === 'decompress') {
             const { dictionary, verifyChecksum } = options || {};
             resultTypedArray = decompressBuffer(inputData, dictionary, verifyChecksum);
+        }
+        else if (task === 'decompress-block') {
+            const { uncompressedSize } = options || {};
+            // If unknown, assume 4MB max
+            const outputSize = uncompressedSize || 4194304;
+            const output = new Uint8Array(outputSize);
+            const written = decompressBlock(inputData, 0, inputData.length, output, 0);
+            resultTypedArray = output.subarray(0, written);
         }
         else {
             throw new Error(`LZ4 Worker: Unknown task "${task}"`);

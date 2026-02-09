@@ -7,8 +7,8 @@
 const PRIME32_1 = 2654435761 | 0;
 const PRIME32_2 = 2246822519 | 0;
 const PRIME32_3 = 3266489917 | 0;
-const PRIME32_4 =  668265263 | 0;
-const PRIME32_5 =  374761393 | 0;
+const PRIME32_4 = 668265263 | 0;
+const PRIME32_5 = 374761393 | 0;
 
 export class XXHash32 {
     /**
@@ -21,6 +21,22 @@ export class XXHash32 {
         this.memory = new Uint8Array(16);
 
         // State
+        this.v1 = (this.seed + PRIME32_1 + PRIME32_2) | 0;
+        this.v2 = (this.seed + PRIME32_2) | 0;
+        this.v3 = this.seed | 0;
+        this.v4 = (this.seed - PRIME32_1) | 0;
+    }
+
+    /**
+     * Resets the hash state to reuse the instance.
+     * @param {number} [seed=0]
+     */
+    reset(seed = 0) {
+        this.seed = seed | 0;
+        this.totalLen = 0 | 0;
+        this.memSize = 0 | 0;
+        // reuse this.memory
+
         this.v1 = (this.seed + PRIME32_1 + PRIME32_2) | 0;
         this.v2 = (this.seed + PRIME32_2) | 0;
         this.v3 = this.seed | 0;
@@ -49,7 +65,7 @@ export class XXHash32 {
                 this.memory[this.memSize + i] = input[p + i];
             }
             this.memSize = (this.memSize + len) | 0;
-            return;
+            return this;
         }
 
         if (this.memSize > 0) {
@@ -80,6 +96,7 @@ export class XXHash32 {
             }
             this.memSize = remaining;
         }
+        return this;
     }
 
     /**

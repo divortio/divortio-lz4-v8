@@ -11,7 +11,7 @@
 
 import { LZ4Decoder } from '../shared/lz4Decode.js';
 import { ensureBuffer } from '../shared/lz4Util.js';
-import { TaskScheduler } from './scheduler.js';
+import { TaskScheduler } from '../utils/scheduler.js';
 
 /**
  * Creates an Asynchronous Decompression Stream.

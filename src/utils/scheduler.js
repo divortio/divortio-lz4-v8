@@ -1,5 +1,5 @@
 /**
- * src/scheduler/scheduler.js
+ * src/utils/scheduler.js
  * * Task Scheduler.
  * * A simple concurrency limiter (Semaphore) to manage async task execution.
  * * It ensures that no more than `concurrency` tasks are running at the same time.

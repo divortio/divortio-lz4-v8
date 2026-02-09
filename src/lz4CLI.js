@@ -20,9 +20,17 @@ if (config.isHelp) {
 }
 
 if (config.command === 'compress') {
-  compressor.run(config);
+  if (config.useStream) {
+    await compressor.runStream(config);
+  } else {
+    compressor.run(config);
+  }
 } else if (config.command === 'decompress') {
-  decompressor.run(config);
+  if (config.useStream) {
+    await decompressor.runStream(config);
+  } else {
+    decompressor.run(config);
+  }
 } else {
   // If no command matched but args parsed, likely default was 'compress' 
   // but cliArgs defaults that.

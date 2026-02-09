@@ -9,7 +9,7 @@
 
 import { LZ4Encoder } from "../shared/lz4Encode.js";
 import { ensureBuffer } from "../shared/lz4Util.js";
-import { TaskScheduler } from "./scheduler.js";
+import { TaskScheduler } from "../utils/scheduler.js";
 
 /**
  * Creates an Asynchronous Compression Stream.
