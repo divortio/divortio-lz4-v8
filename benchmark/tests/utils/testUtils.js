@@ -10,7 +10,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const BENCH_CLI = path.resolve(__dirname, '../../bench.js');
-export const TEST_CACHE_DIR = path.resolve(__dirname, '../../../../.cache/tests');
+export const TEST_CACHE_DIR = path.resolve(__dirname, '../../../../.cacheCorpus/tests');
 
 /**
  * Runs the benchmark CLI with the given arguments.

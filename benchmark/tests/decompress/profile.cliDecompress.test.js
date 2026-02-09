@@ -16,7 +16,7 @@ const TEMP_FILE = path.join(__dirname, 'profile_decompress_test.lz4');
 // Ideally we compress one first. Or we mock it?
 // We can use bench.js compress to generate one, but that makes test dependent.
 // Let's assume we can just create a dummy file and it might fail decompression logic 
-// BUT the profile command should still run if we don't assert validity of output content, 
+// BUT the profile command should still listLibs if we don't assert validity of output content,
 // just that the profiler ran.
 // Actually, if the workload crashes, profiling might fail.
 // Better to create a valid LZ4 file. 
@@ -41,11 +41,11 @@ test('CLI Profile Decompress Command', async (t) => {
 
         // Simpler: Just make a dummy file. BenchDecompress *might* just error out gracefully or throw.
         // ProfileWorkload runs the decompress loop. If it throws, profile might fail.
-        // Let's rely on standard 'compress' having run correctly? 
+        // Let's rely on standard 'compress' having listLibs correctly?
         // Or just write a "fake" file? 
         // Since we are profiling lz4-divortio, it expects valid lz4.
 
-        // Let's try to run a quick compress to generate the file.
+        // Let's try to listLibs a quick compress to generate the file.
         const cRes = runBench(['compress', '-l', 'lz4Divortio', '-i', src, '-s', '1', '-w', '0']);
         if (cRes.exitCode === 0) {
             // Parse output to find where it went?

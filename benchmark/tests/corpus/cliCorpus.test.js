@@ -8,7 +8,7 @@ import { runBench } from '../utils/testUtils.js';
 
 test('CLI Corpus Command', async (t) => {
     
-    await t.test('list shows available corpora', () => {
+    await t.test('listCorpora shows available corpora', () => {
         const result = runBench(['corpus']);
         assert.strictEqual(result.exitCode, 0, 'Exit code should be 0');
         assert.match(result.stdout, /Corpus: silesia/i);

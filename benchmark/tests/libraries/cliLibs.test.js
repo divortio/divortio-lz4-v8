@@ -8,7 +8,7 @@ import { runBench } from '../utils/testUtils.js';
 
 test('CLI Libraries Command', async (t) => {
 
-    await t.test('list shows available libraries', () => {
+    await t.test('listCorpora shows available libraries', () => {
         const result = runBench(['libs']);
         assert.strictEqual(result.exitCode, 0);
 
