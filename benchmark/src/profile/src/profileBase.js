@@ -17,6 +17,6 @@ export class ProfileBase {
     }
 
     run() {
-        throw new Error("Generic ProfileBase.run() called.");
+        throw new Error("Generic ProfileBase.listLibs() called.");
     }
 }

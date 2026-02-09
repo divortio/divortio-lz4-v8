@@ -4,7 +4,7 @@
  * Configuration for the single library used in a profile command.
  */
 
-import { resolveLibrary } from '../../cli/cliLibs.js';
+import { resolveLibrary } from '../../cli/libs/cliLibs.js';
 
 export class ProfileConfigLib {
     /**

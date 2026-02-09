@@ -6,7 +6,7 @@
  */
 
 import { parseArgs, resolveInputs } from '../../bench/shared/benchCLI.js';
-import { resolveLibrary } from '../../cli/cliLibs.js';
+import { resolveLibrary } from '../../cli/libs/cliLibs.js';
 import { performance } from 'perf_hooks';
 
 async function main() {

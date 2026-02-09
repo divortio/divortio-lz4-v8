@@ -24,11 +24,11 @@ export class ProfileTick extends ProfileBase {
         this.commandArgs = commandArgs;
         this.scriptPath = scriptPath;
 
-        // Default Directory: benchmark/.cache/profile/${safeLibName}
+        // Default Directory: benchmark/.cacheCorpus/profile/${safeLibName}
         // or config.diagnosticDirOverride
         const safeName = config.lib.safeName;
         const projectRoot = path.resolve(__dirname, '../../../..');
-        const defaultDir = path.join(projectRoot, '.cache', 'profile', safeName);
+        const defaultDir = path.join(projectRoot, '.cacheCorpus', 'profile', safeName);
 
         this.outputDir = config.diagnosticDirOverride || defaultDir;
 

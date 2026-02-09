@@ -5,5 +5,5 @@
  */
 
 // Re-export functionality from cliLibs which is the modern catalog accessor
-export { resolveLibrary, resolveLibraries } from '../../cli/cliLibs.js';
+export { resolveLibrary, resolveLibraries } from '../../cli/libs/cliLibs.js';
 export { V8JSLibs, NodeJSLibs, V8WASMLibs } from '../../libraries/libCatalogs.js'; 

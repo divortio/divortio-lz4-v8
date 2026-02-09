@@ -13,7 +13,7 @@ export class ProfileConfigInputs {
      * @param {string[]} corpus - Array of corpus names
      */
     constructor(names = [], corpus = []) {
-        // Resolve all inputs into a flat list of InputFile/CorpusFile objects
+        // Resolve all inputs into a flat listCorpora of InputFile/CorpusFile objects
         // verify uniqueness?
 
         // combine raw input arguments

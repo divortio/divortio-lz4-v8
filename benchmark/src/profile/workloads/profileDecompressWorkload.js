@@ -5,11 +5,11 @@
  */
 
 import { parseArgs, resolveInputs } from '../../bench/shared/benchCLI.js';
-import { resolveLibrary } from '../../cli/cliLibs.js';
+import { resolveLibrary } from '../../cli/libs/cliLibs.js';
 
 async function main() {
     try {
-        const config = parseArgs();
+        const config = await parseArgs();
 
         if (config.libraryNames.length !== 1) {
             throw new Error("Profile workload requires exactly one library.");

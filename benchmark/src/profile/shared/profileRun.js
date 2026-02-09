@@ -28,7 +28,7 @@ export class ProfileRun {
 
         // Determine script path based on type
         // We reuse the BENCHMARK CLI scripts because they contain the logic.
-        // We just run them.
+        // We just listLibs them.
         let scriptPath;
         const benchRoot = path.resolve(__dirname, '../../bench');
 
