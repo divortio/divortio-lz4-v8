@@ -2,20 +2,23 @@
 
 [🏠 Home](../docs/src/README.md)
 
-Prioritized list of next steps.
+Prioritized listCorpora of next steps.
 
 ## High Priority (Spec & Bugs)
-- [ ] **Skippable Frames**: Fix crash on User Data frames. [Link](todo.spec.md)
-- [ ] **Block Checksums**: Implement verification. [Link](todo.spec.md)
+- [x] **Skippable Frames**: Fix crash on User Data frames. [Link](done/todo.spec.md)
+- [x] **Block Checksums**: Implement verification. [Link](done/todo.spec.md)
 
-## Critical Performance
-- [ ] **Optimize `compressBlock`**: Fix "Interpreted" status (Monomorphism/Deopt). **(Yields ~59% improvement)**
-
-## Medium Priority (Performance)
-- [ ] **Uint32 Reads**: Optimize `blockDecompress`. [Link](todo.blockDecompress.md)
-- [ ] **Aligned Access**: Optimize `xxHash32`. [Link](todo.xxhash32.md)
-- [ ] **External Dictionary**: Reduce memory copies. [Link](todo.dictionaryContext.md)
+- [x] Optimize `compressBlock` (Completed: Baseline V8 JIT is sufficient)
+- [x] Optimize `decompressBlock` (Completed: Baseline V8 JIT is sufficient)
+- [x] **Skippable Frames**: Fix crash on User Data frames. [Link](done/todo.spec.md)
+- [x] **Block Checksums**: Implement verification (Buffer + Stream). [Link](done/todo.spec.md)
+- [x] **Fuzz Testing**: Verify `decompressBlock` safety. [Link](done/todo.blockDecompress.md)
+- [x] **Uint32 Reads**: Optimize `blockDecompress`. [Link](dev/profiling/silesia.dickens/decompress/docs/01_decompressBlock.dep-5.md) (Rejected)
+- [x] **Aligned Access**: Optimize `xxHash32`. [Link](done/todo.xxhash32.md)
+- [x] **External Dictionary**: Reduce memory copies. [Link](done/todo.dictionaryContext.md)
+- [x] **Stream Buffering**: Implement Ring Buffer/Rope for `LZ4Encoder`. [Link](done/todo.streamCompress.md)
 
 ## Low Priority (Refactor)
-- [ ] **Stream Refactor**: Use `fs` streams in CLI. [Link](todo.cliCompress.md)
-- [ ] **Tree Shaking**: Split entrypoints. [Link](todo.entrypoints.md)
+- [x] **Stream Refactor**: Use `fs` streams in CLI. [Link](done/todo.cliCompress.md)
+- [x] **Tree Shaking**: Split entrypoints. [Link](done/todo.entrypoints.md)
+- [x] **Worker Pool**: Implement concurrent workers. [Link](done/todo.webWorker.md)

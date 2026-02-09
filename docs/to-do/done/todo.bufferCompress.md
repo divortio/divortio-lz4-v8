@@ -5,6 +5,6 @@
 Source: [`src/buffer/bufferCompress.js`](../../src/buffer/bufferCompress.js)
 
 ## Spec Gaps
-- [ ] **Block Checksums**:
+- [x] **Block Checksums**:
     -   **Issue**: No option to enable `FLG_BLOCK_CHECKSUM_MASK`.
-    -   **Task**: Add configuration option.
+    -   **Task**: Add configuration option. (Implemented: `blockChecksum` arg)

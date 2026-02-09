@@ -5,13 +5,13 @@
 Source: [`src/buffer/bufferDecompress.js`](../../src/buffer/bufferDecompress.js)
 
 ## Spec Gaps
-- [ ] **Skippable Frames**:
+- [x] **Skippable Frames**:
     -   **Context**: Spec allows frames starting with `0x184D2A50` to `0x184D2A5F`.
     -   **Issue**: `bufferDecompress.js` accepts only `0x184D2204`.
-    -   **Task**: Implement loop to check for Skippable Magic Numbers.
-- [ ] **Block Checksums**:
+    -   **Task**: Implement loop to check for Skippable Magic Numbers. (Implemented)
+- [x] **Block Checksums**:
     -   **Issue**: Skips bytes but does not verify.
-    -   **Task**: Add verification logic.
+    -   **Task**: Add verification logic. (Implemented: Verify if `verifyChecksum` is true)
 
 ## Optimizations
 - [ ] **Pre-Allocated Workspace Sizing**:
