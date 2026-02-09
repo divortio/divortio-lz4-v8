@@ -9,13 +9,20 @@ import { spawnSync } from 'child_process';
 import path from 'path';
 
 // Configuration
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const PROJECT_ROOT = path.resolve(__dirname, '../../../../');
+
+// Configuration
 const CONFIG = {
     library: 'lz4-divortio',
-    input: '.cache/corpus/silesia/dickens',
-    script: 'benchmark/src/bench/compress/benchCompressCLI.js'
+    input: path.join(PROJECT_ROOT, '.cacheCorpus/corpus/silesia/dickens'),
+    script: path.join(PROJECT_ROOT, 'benchmark/src/bench/compress/benchCompressCLI.js')
 };
 
-function run(outputFile, samples = 5, warmups = 2) {
+function run(outputFile, samples = 10, warmups = 5) {
     const args = [
         CONFIG.script,
         '-l', CONFIG.library,
@@ -28,7 +35,7 @@ function run(outputFile, samples = 5, warmups = 2) {
     console.log(`[Bench] Running: node ${args.join(' ')}`);
 
     const child = spawnSync('node', args, {
-        cwd: process.cwd(),
+        cwd: PROJECT_ROOT,
         stdio: 'inherit',
         encoding: 'utf-8'
     });

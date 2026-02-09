@@ -12,8 +12,17 @@ import path from 'path';
 import { run as runBench } from './bench.compress.lz4-divortio_silesia.dickens.js';
 import { spawnSync } from 'child_process';
 
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// This script is in dev/profiling/silesia.dickens/
+const BASE_DIR = __dirname;
+// Project root is 3 levels up
+const PROJECT_ROOT = path.resolve(__dirname, '../../../');
+
 const JOB_ID = Date.now().toString();
-const BASE_DIR = path.join(process.cwd(), 'dev/profiling/silesia.dickens');
 const RESULTS_DIR = path.join(BASE_DIR, 'results', JOB_ID);
 
 // Ensure results dir exists
@@ -31,14 +40,14 @@ runBench(benchOutput, 10, 5);
 // 2. Run Profile
 // We invoke the profile script directly, or wrap it. 
 // The profile script currently hardcodes output path to dev/profiling/silesia.dickens/results
-// We might need to move artifacts after run, OR modify profile script to accept output dir.
-// For now, let's run it and move artifacts.
+// We might need to move artifacts after listLibs, OR modify profile script to accept output dir.
+// For now, let's listLibs it and move artifacts.
 const profScript = path.join(BASE_DIR, 'prof.compress.lz4-divortio_silesia.dickens.js');
 console.log('\n--- Step 2: Profile ---');
 
 const profArgs = [profScript];
 const child = spawnSync('node', profArgs, {
-    cwd: process.cwd(),
+    cwd: PROJECT_ROOT,
     stdio: 'inherit',
     encoding: 'utf-8'
 });
@@ -51,7 +60,7 @@ if (child.status !== 0) {
 // Move Profile Artifacts to Job Dir
 // Profile script dumps to dev/profiling/silesia.dickens/results/
 // We want to move *new* files to RESULTS_DIR (which is a subdir of results)
-// Actually, looking at previous steps, it dumps to .cache/profile/... then moves to results/
+// Actually, looking at previous steps, it dumps to .cacheCorpus/profile/... then moves to results/
 // Let's implement a move.
 
 const defaultResultsDir = path.join(BASE_DIR, 'results');
