@@ -199,6 +199,8 @@ export function decompressBlock(input, inputOffset, inputSize, output, outputOff
             }
         }
         // B. Internal Match (Standard)
+        // B. Internal Match (Standard)
+        // B. Internal Match (Standard)
         else {
             // RLE Optimization (Repeat Byte)
             if (offset === 1) {

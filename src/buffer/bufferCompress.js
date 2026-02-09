@@ -8,11 +8,11 @@
 
 import { xxHash32 } from '../xxhash32/xxhash32.js';
 import { compressBlock } from '../block/blockCompress.js';
-import { ensureBuffer, hashU32 } from '../shared/lz4Util.js';
+import { ensureBuffer } from '../shared/lz4Util.js';
+import { hashU32, warmHashTable } from '../shared/hashing.js';
 import { writeU32 } from '../utils/byteUtils.js';
 import { writeFrameHeader, getBlockId, BLOCK_MAX_SIZES } from '../frame/frameHeader.js';
 import { writeEndMark, writeContentChecksum } from '../frame/frameFooter.js';
-import { warmHashTable } from '../dictionary/dictionaryHash.js';
 import { prepareInputContext } from '../dictionary/dictionaryContext.js';
 import { LZ4Dictionary } from '../dictionary/LZ4Dictionary.js';
 
@@ -38,12 +38,21 @@ const GLOBAL_HASH_TABLE = new Int32Array(HASH_TABLE_SIZE);
  * @param {number} [maxBlockSize=4194304] - Maximum size of a single block (default 4MB).
  * @param {boolean} [blockIndependence=false] - If true, blocks can be decompressed independently (slightly lower ratio).
  * @param {boolean} [contentChecksum=false] - If true, adds a xxHash32 checksum of the original content at the end.
+ * @param {boolean} [blockChecksum=false] - If true, adds a xxHash32 checksum after each block.
  * @param {boolean} [addContentSize=true] - If true, adds the original content size to the header (recommended).
  * @param {Uint8Array} [outputBuffer=null] - **Optimization**: A pre-allocated buffer to write the compressed data into.
  * If null, a new buffer is allocated (approx worst-case size).
  * @returns {Uint8Array} A view of the compressed LZ4 Frame (either a new buffer or a subarray of `outputBuffer`).
  */
-export function compressBuffer(input, dictionary = null, maxBlockSize = 4194304, blockIndependence = false, contentChecksum = false, addContentSize = true, outputBuffer = null) {
+export function compressBuffer(input,
+                               dictionary = null,
+                               maxBlockSize = 4194304,
+                               blockIndependence = false,
+                               contentChecksum = false,
+                               blockChecksum = false,
+                               addContentSize = true,
+                               outputBuffer = null
+) {
     const rawInput = ensureBuffer(input);
 
     // --- Dictionary & Context Setup ---
@@ -79,8 +88,8 @@ export function compressBuffer(input, dictionary = null, maxBlockSize = 4194304,
     if (outputBuffer) {
         output = outputBuffer;
     } else {
-        // Allocate worst-case size: Header + Input + 0.4% overhead + Footer
-        const worstCaseSize = (19 + len + (len / 255 | 0) + 64 + 8) | 0;
+        // Allocate worst-case size: Header + Input + 0.4% overhead + Footer + (Block Checksums ~ len/BSize * 4)
+        const worstCaseSize = (19 + len + (len / 255 | 0) + 64 + 8 + (len / 1024 | 0) * 4) | 0;
         output = new Uint8Array(worstCaseSize);
     }
 
@@ -91,11 +100,10 @@ export function compressBuffer(input, dictionary = null, maxBlockSize = 4194304,
         maxBlockSize,
         blockIndependence,
         contentChecksum,
+        blockChecksum,
         addContentSize ? len : null,
         dictId
     );
-
-    // --- 2. Compression Loop ---
 
     // --- 2. Compression Loop ---
 
@@ -137,6 +145,15 @@ export function compressBuffer(input, dictionary = null, maxBlockSize = 4194304,
             writeU32(output, blockSize | 0x80000000, sizePos);
             output.set(workingBuffer.subarray(srcPos, end), outPos);
             outPos = (outPos + blockSize) | 0;
+        }
+
+        // Block Checksum (Optional)
+        if (blockChecksum) {
+            // Calculate hash of the "Block" (Compressed or Uncompressed data, NOT size)
+            // Current block data is from sizePos + 4 to outPos
+            const blockHash = xxHash32(output, 0, sizePos + 4, outPos - (sizePos + 4));
+            writeU32(output, blockHash, outPos);
+            outPos = (outPos + 4) | 0;
         }
 
         // If blocks are independent, clear the hash table history
