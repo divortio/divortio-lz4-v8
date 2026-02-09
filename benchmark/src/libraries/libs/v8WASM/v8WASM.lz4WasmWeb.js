@@ -34,7 +34,7 @@ class V8WASMLz4WasmWeb extends BaseLib {
      * Loads the lz4-wasm library using the Node.js-specific workaround strategy.
      * * This mimics the logic originally found in benchWorker.js:
      * - Attempts to import `lz4_wasm.js` (ignoring package.json 'module' field issues).
-     * - If the default export is an init function, it attempts to run it.
+     * - If the default export is an init function, it attempts to listLibs it.
      * - If running init fails (common in Node), it manually reads `lz4_wasm_bg.wasm`
      * from disk and passes the buffer to the init function.
      *

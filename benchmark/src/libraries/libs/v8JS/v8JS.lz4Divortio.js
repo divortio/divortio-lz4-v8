@@ -3,7 +3,8 @@
  * Adapts the local 'lz4-divortio' source code to the standard BaseLib interface.
  */
 
-import { BaseLib } from '../../shared/baseLib.js';
+import {LZ4} from '../../../../../src/lz4.js'
+import {BaseLib} from '../../shared/baseLib.js';
 
 /**
  * Wrapper for the 'lz4-divortio' library.
@@ -24,9 +25,8 @@ export class V8JSLz4Divortio extends BaseLib {
         // language: 'Javascript' - Pure JS implementation
         super('lz4-divortio', 'lz4-divortio', 'V8', 'Javascript');
 
-        /** @type {Object|null} The core LZ4 module containing compress logic */
+
         this.LZ4 = null;
-        /** @type {Function|null} The specific buffer decompression function */
         this.decompressBuffer = null;
     }
 
@@ -40,13 +40,21 @@ export class V8JSLz4Divortio extends BaseLib {
      */
     async load() {
         // Relative path from 'benchmark/libraries/' to 'src/lz4.js'
-        const mod = await import('../../../../../src/lz4.js');
 
-        this.LZ4 = mod.LZ4;
+
+        /**
+         *
+         * @type {LZ4}
+         */
+        this.LZ4 = await import('../../../../../src/lz4.js');
 
         // We assume the main entrypoint exports the buffer decompressor.
         // If your project structure still separates them, we can add the secondary import here.
         // Fix: src/lz4.js exports LZ4 object which contains decompress (bufferDecompress)
+        /**
+         *
+         * @type {LZ4.decompress}
+         */
         this.decompressBuffer = this.LZ4.decompress;
 
         if (!this.LZ4) {
@@ -71,13 +79,29 @@ export class V8JSLz4Divortio extends BaseLib {
         if (outputBuffer) {
             // Zero-Allocation Mode: Writes directly to outputBuffer.
             // Returns the byte length of the compressed data.
-            const length = this.LZ4.compress(input, null, 4194304, true, false, true, outputBuffer);
-
-            // Return the useful subarray of the shared buffer
-            return outputBuffer.subarray(0, length);
+            // Corrected to use Options Object
+            const compressed = this.LZ4.compress(input,
+                null,
+                4194304,
+                false,
+                false,
+                false,
+                true,
+                outputBuffer
+            );
+            // LZ4.compress options mode returns Uint8Array (subarray of outputBuffer)
+            // We need length or the buffer itself.
+            return compressed;
         } else {
             // Allocation Mode: Returns a new buffer
-            return this.LZ4.compress(input, null, 4194304, true, false, true);
+            return this.LZ4.compress(input,
+                null,
+                4194304,
+                false,
+                false,
+                false,
+                true
+            );
         }
     }
 
@@ -93,6 +117,6 @@ export class V8JSLz4Divortio extends BaseLib {
         if (!this.decompressBuffer) throw new Error("Library not loaded or decompressBuffer missing");
 
         // decompressBuffer allocates and returns the result
-        return this.decompressBuffer(compressedInput);
+        return this.decompressBuffer(compressedInput, null, false);
     }
 }

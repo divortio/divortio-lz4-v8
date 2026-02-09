@@ -23,7 +23,7 @@ export function generateConfigTable(config, columns = null, sortField = null, so
         'Warmups': config.warmups,
         'Libraries': config.libs.getNames().join(', '),
         'Inputs': config.inputs.getFileNames().join(', '),
-        ...config.misc
+        ...config.options
     };
 
     // If sortField is provided, we might be sorting the KEYS of the config? 
