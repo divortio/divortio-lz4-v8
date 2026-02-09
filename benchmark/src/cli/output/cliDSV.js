@@ -6,8 +6,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import { generateResultsDSV } from '../report/dsv/dsvResults.js';
-import { generateResultsAggDSV } from '../report/dsv/dsvResultsAgg.js';
+import { generateResultsDSV } from '../../report/dsv/dsvResults.js';
+import { generateResultsAggDSV } from '../../report/dsv/dsvResultsAgg.js';
 
 export function generateReport(results, options = {}) {
     const format = options.format || 'csv';

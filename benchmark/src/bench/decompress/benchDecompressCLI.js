@@ -4,12 +4,13 @@
  * CLI Entrypoint for Single-File Multi-Library Decompression Benchmarks.
  */
 
-import { parseArgs, resolveLibraries, resolveInput } from '../shared/benchCLI.js';
+import { parseArgs, resolveInputs } from '../shared/benchCLI.js';
+import { resolveLibraries } from '../../cli/libs/cliLibs.js';
 import { BenchDecompressInProc } from './benchDecompressInProc.js';
 
 async function main() {
     try {
-        const config = parseArgs();
+        const config = await parseArgs();
         if (config.isHelp) {
             console.log("Usage: node benchDecompressCLI.js -l <lib> [-l <lib2>] -i <input> [-s 5] [-w 2]");
             process.exit(0);
@@ -19,7 +20,8 @@ async function main() {
         const inputName = config.inputNames[0];
         if (!inputName) throw new Error("Input file required (-i)");
 
-        const inputFile = resolveInput(inputName);
+        const inputFiles = resolveInputs([inputName]);
+        const inputFile = inputFiles[0];
 
         const bench = new BenchDecompressInProc(libraries, inputFile, config.samples, config.warmups);
         const resultsMap = await bench.run();

@@ -12,20 +12,20 @@ import { fileURLToPath } from 'url';
 // Library imports removed (moved to cliLibs.js)
 
 // Import Input Abstractions
-import { InputFile } from '../../inputs/inputFile.js';
-import { resolveCorpusString } from '../../cli/cliCorpus.js';
+import { InputFile } from '../../input/inputFile.js';
+import { resolveCorpusString } from '../../cli/args/corpus/cliCorpus.js';
 
 /**
  * Parses command line arguments.
  * Expected format: --library <lib> --input <file> [--samples <N>] [--warmup <N>]
  * Aliases: -l, -i, -s, -w
  * @returns {object} { libraryName, inputName, samples, warmups, isHelp }
+ * @returns {Promise<object>} { libraryName, inputName, samples, warmups, isHelp }
  */
-export function parseArgs() {
+export async function parseArgs() {
     const args = process.argv.slice(2);
     const config = {
         libraryNames: [], // Array of library strings
-        inputNames: [],
         inputNames: [],
         corpusNames: [],
         formats: [],
@@ -33,6 +33,7 @@ export function parseArgs() {
         append: false,
         samples: 5,
         warmups: 2,
+        env: null,
         isHelp: false
     };
 
@@ -88,9 +89,24 @@ export function parseArgs() {
                 config.metaMd = true;
                 break;
             case '--help':
-            case '-h':
                 config.isHelp = true;
                 break;
+            case '--env':
+            case '-e':
+                config.env = next;
+                i++;
+                break;
+        }
+    }
+
+    if (config.env) {
+        // Dynamic Resolution
+        const { filterLibraries } = await import('./benchLibCatalog.js');
+        const libs = filterLibraries({ env: config.env });
+        if (libs.length > 0) {
+            config.libraryNames.push(...libs);
+        } else {
+            console.warn(`Warning: No libraries found for env '${config.env}'`);
         }
     }
 
@@ -100,7 +116,7 @@ export function parseArgs() {
 // Library Resolution moved to cli/cliLibs.js
 
 /**
- * Resolves a list of input names to a flat array of InputFile/CorpusFile objects.
+ * Resolves a listCorpora of input names to a flat array of InputFile/CorpusFile objects.
  * Uses cliCorpus handlers for corpus resolution.
  * @param {string[]} rawNames 
  * @returns {Array<InputFile>}

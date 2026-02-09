@@ -6,9 +6,9 @@
  */
 
 // Import Library Catalogs
-import { V8JSLibs } from '../libraries/libs/libs.v8JS.js';
-import { NodeJSLibs } from '../libraries/libs/libs.nodeJS.js';
-import { V8WASMLibs } from '../libraries/libs/libs.v8WASM.js';
+import { V8JSLibs } from '../../libraries/libs/libs.v8JS.js';
+import { NodeJSLibs } from '../../libraries/libs/libs.nodeJS.js';
+import { V8WASMLibs } from '../../libraries/libs/libs.v8WASM.js';
 
 /**
  * Resolves a library string to a BenchLib instance.
@@ -90,7 +90,7 @@ export function resolveLibrary(rawName) {
 }
 
 /**
- * Resolves a list of library names to an array of { name, library } objects.
+ * Resolves a listCorpora of library names to an array of { name, library } objects.
  * @param {string[]} rawNames
  * @returns {Array<{name: string, library: object}>}
  */
@@ -99,7 +99,7 @@ export function resolveLibraries(rawNames) {
         throw new Error("No libraries specified (-l)");
     }
     const results = [];
-    // Deduplicate? Maybe user wants to run twice. 
+    // Deduplicate? Maybe user wants to listLibs twice.
     // Let's keep distinct entries.
     for (const name of rawNames) {
         const libInstance = resolveLibrary(name);

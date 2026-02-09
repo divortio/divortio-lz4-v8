@@ -4,7 +4,7 @@
  * Central handler for Corpus-related CLI operations.
  * Routes input resolution to specific handlers for:
  * - Individual Corpus Files (cliCorpusFile)
- * - Full Corpus as list (cliCorpusFiles)
+ * - Full Corpus as listCorpora (cliCorpusFiles)
  * - Full Corpus as Tar (cliCorpusTar)
  */
 
@@ -13,7 +13,7 @@ import { resolveCorpusFiles } from './cliCorpusFiles.js';
 import { resolveCorpusTar } from './cliCorpusTar.js';
 
 /**
- * Resolves a raw input string to a list of InputFile objects if it matches corpus logic.
+ * Resolves a raw input string to a listCorpora of InputFile objects if it matches corpus logic.
  * Priorities:
  * 1. Corpus Tar (silesia.tar, silesia.all)
  * 2. Corpus File (silesia.dickens)

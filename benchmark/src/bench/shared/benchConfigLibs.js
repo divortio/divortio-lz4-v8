@@ -1,10 +1,11 @@
 /**
  * benchmark/src/bench/shared/benchConfigLibs.js
  * 
- * Manages the collection of libraries for a benchmark run.
+ * Manages the collection of libraries for a benchmark listLibs.
  */
 
-import { resolveLibrary } from '../../cli/cliLibs.js';
+import { resolveLibrary } from '../../cli/libs/cliLibs.js';
+
 
 export class BenchConfigLibs {
     /**

@@ -4,10 +4,10 @@
  * CLI Handling for 'profile' command.
  */
 
-import { parseArgs } from '../profile/shared/profileCLI.js';
-import { ProfileConfig } from '../profile/shared/profileConfig.js';
-import { ProfileRun } from '../profile/shared/profileRun.js';
-import { ProfileResults } from '../result/profile/profileResults.js';
+import { parseArgs } from '../../../profile/shared/profileCLI.js';
+import { ProfileConfig } from '../../../profile/shared/profileConfig.js';
+import { ProfileRun } from '../../../profile/shared/profileRun.js';
+import { ProfileResults } from '../../../result/profile/profileResults.js';
 
 /**
  * Validates and runs the profile command.

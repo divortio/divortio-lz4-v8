@@ -82,7 +82,7 @@ export class BenchRoundtripInProc {
                     tsEndD
                 );
 
-                libResults.addResult(new RoundtripResult(cResult, dResult));
+                libResults.add(new RoundtripResult(cResult, dResult));
             }
 
             this.results[name] = libResults;

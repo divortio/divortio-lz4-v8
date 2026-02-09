@@ -1,12 +1,13 @@
 /**
  * benchmark/src/bench/shared/benchConfigInputs.js
  * 
- * Manages the collection of inputs (Files/Corpora) for a benchmark run.
+ * Manages the collection of inputs (Files/Corpora) for a benchmark listLibs.
  */
 
 import { resolveInputs } from './benchCLI.js';
-import { InputFile } from '../../inputs/inputFile.js';
-import { CorpusCatalog } from '../../corpus/catalog/corpusCatalog.js';
+import {InputFile} from "../../input/file/inputFile.js";
+
+
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';

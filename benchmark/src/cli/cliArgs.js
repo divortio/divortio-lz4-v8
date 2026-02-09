@@ -24,14 +24,10 @@ export function parseArgs(rawArgs) {
         directory: null,
         prefix: null,
         isAppend: false,
-        isAppend: false,
         noHeader: false,
         filterEnvironment: null,
         filterLanguage: null,
         isHelp: false,
-        unknown: [],
-        unknown: [],
-        dryRun: false,
         unknown: [],
         dryRun: false,
         log: false,
@@ -145,7 +141,7 @@ export function parseArgs(rawArgs) {
             case '-h':
                 config.isHelp = true;
                 break;
-            case '--dry-run':
+            case '--dry-listLibs':
                 config.dryRun = true;
                 break;
             case '--log':

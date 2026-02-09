@@ -108,7 +108,7 @@ export function resolveOutputConfig(args) {
     // I should probably clean up specific defaults. 
     // If outputFormat is detected, and formats contains ONLY default 'md' (how to know it's default?), maybe replace?
     // Actually, cliArgs sets default. I can't distinguish default from explicit 'md' easily unless I change cliArgs.
-    // Or I assume if outputFormat is set, we ensure it's in the list. 
+    // Or I assume if outputFormat is set, we ensure it's in the listCorpora.
     // Let's just ensure it's added. If 'md' is there, we generate md too (consistent with "filenames of any additional specified formats").
 
     return {

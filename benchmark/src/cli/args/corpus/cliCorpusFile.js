@@ -4,8 +4,11 @@
  * Logic to resolve a specific corpus file pattern (e.g. 'silesia.dickens').
  */
 
-import { CorpusFile } from '../inputs/corpusFile.js';
-import { CorpusCatalog } from '../corpus/catalog/corpusCatalog.js';
+import {CorpusFile} from "../../../input/file/corpusFile.js";
+// import { CorpusFile } from '../inputs/corpusFile.js';
+import {CorpusCatalog} from "../../../input/corpora/corpusCatalog.js";
+
+// import { CorpusCatalog } from '../corpus/catalog/corpusCatalog.js';
 
 export function resolveCorpusFile(rawName) {
     if (!rawName) return null;

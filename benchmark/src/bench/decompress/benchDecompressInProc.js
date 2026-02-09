@@ -64,7 +64,7 @@ export class BenchDecompressInProc {
                 const compressedSize = compressed.byteLength || compressed.length;
                 const outputSize = decompressed.byteLength || decompressed.length;
 
-                libResults.addResult(new DecompressionResult(
+                libResults.add(new DecompressionResult(
                     this.inputFile.filename,
                     compressedSize,
                     outputSize,

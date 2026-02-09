@@ -4,9 +4,13 @@
  * Lists available libraries with filtering capabilities.
  */
 
-import { getAllLibraries } from '../bench/shared/benchLibCatalog.js';
+import { getAllLibraries } from '../../../bench/shared/benchLibCatalog.js';
 
-export function run(args) {
+/**
+ *
+ * @param args {object}
+ */
+export function listLibs(args) {
     // 1. Collect all libraries
     const allLibs = getAllLibraries();
 

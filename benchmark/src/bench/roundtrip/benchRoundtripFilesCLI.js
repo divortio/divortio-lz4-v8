@@ -3,7 +3,7 @@
  */
 
 import { parseArgs, resolveInputs } from '../shared/benchCLI.js';
-import { resolveLibraries } from '../../cli/cliLibs.js';
+import { resolveLibraries } from '../../cli/libs/cliLibs.js';
 import { BenchRoundtripFilesInProc } from './benchRoundtripFilesInProc.js';
 
 async function main() {

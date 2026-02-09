@@ -4,8 +4,11 @@
  * Logic to expand a corpus name (e.g. 'silesia') into all its contained files.
  */
 
-import { CorpusFile } from '../inputs/corpusFile.js';
-import { CorpusCatalog } from '../corpus/catalog/corpusCatalog.js';
+import {CorpusFile} from "../../../input/file/corpusFile.js";
+import {CorpusCatalog} from "../../../input/corpora/corpusCatalog.js";
+
+// import { CorpusFile } from '../inputs/corpusFile.js';
+// import { CorpusCatalog } from '../corpus/catalog/corpusCatalog.js';
 
 export function resolveCorpusFiles(rawName) {
     const corpus = CorpusCatalog.get(rawName);

@@ -4,7 +4,7 @@
  * CLI Adapter for Markdown Reporting.
  */
 
-import { MarkdownReport } from '../report/markdown/mdReport.js';
+import { MarkdownReport } from '../../report/markdown/mdReport.js';
 
 /**
  * Generates a Markdown report from benchmark results.

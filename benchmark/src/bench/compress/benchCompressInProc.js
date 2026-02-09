@@ -60,7 +60,7 @@ export class BenchCompressInProc {
 
                 const outputSize = compressed.byteLength || compressed.length;
 
-                libResults.addResult(new CompressionResult(
+                libResults.add(new CompressionResult(
                     this.inputFile.filename,
                     inputBuffer.byteLength,
                     outputSize,

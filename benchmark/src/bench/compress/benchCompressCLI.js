@@ -5,7 +5,7 @@
  */
 
 import { parseArgs, resolveInputs } from '../shared/benchCLI.js';
-import { resolveLibraries } from '../../cli/cliLibs.js';
+import { resolveLibraries } from '../../cli/libs/cliLibs.js';
 import { BenchCompressInProc } from './benchCompressInProc.js';
 import { BenchConfig } from '../shared/benchConfig.js';
 import { BenchResults } from '../../result/benchResults.js';
@@ -13,7 +13,7 @@ import { JSONBenchResults } from '../../report/json/jsonBenchResults.js';
 
 async function main() {
     try {
-        const config = parseArgs();
+        const config = await parseArgs();
         if (config.isHelp) {
             console.log("Usage: node benchCompressCLI.js -l <lib> [-l <lib2> ...] -i <input> [-s 5] [-w 2]");
             process.exit(0);

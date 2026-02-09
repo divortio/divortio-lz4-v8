@@ -2,15 +2,15 @@
  * benchmark/src/cli/cliList.js
  * 
  * General List Command Handler.
- * Dispatches to specific list implementations.
+ * Dispatches to specific listCorpora implementations.
  */
 
-import * as cliListLibs from './cliListLibs.js';
-import * as cliListCorpus from './cliListCorpus.js';
+import {listLibs} from './cliListLibs.js';
+import {listCorpus} from './cliListCorpus.js';
 
 export function run(args) {
-    // If the command was 'list', we check the first unknown arg for sub-command
-    // e.g. bench.js list libs
+    // If the command was 'listCorpora', we check the first unknown arg for sub-command
+    // e.g. bench.js listCorpora libs
 
     // However, cliArgs might have consumed 'libs' as unknown[0].
 
@@ -27,14 +27,14 @@ export function run(args) {
     }
 
     if (!subCommand) {
-        console.log('Usage: bench.js list <libs|corpus> [options]');
+        console.log('Usage: bench.js listCorpora <libs|corpus> [options]');
         return;
     }
 
     switch (subCommand.toLowerCase()) {
         case 'libs':
         case 'libraries':
-            cliListLibs.run(subArgs);
+            listLibs(subArgs);
             break;
         case 'corpus':
         case 'corpora':

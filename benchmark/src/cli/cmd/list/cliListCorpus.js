@@ -4,8 +4,8 @@
  * Lists available corpora and their files.
  */
 
-// import { Corpus } from '../corpus/corpus.js'; // Removed static import
-import { formatBytes } from '../report/markdown/mdTableBase.js';
+
+import { formatBytes } from '../../../report/markdown/mdTableBase.js';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
@@ -13,9 +13,9 @@ const require = createRequire(import.meta.url);
 export function run(args) {
     let Corpus;
     try {
-        Corpus = require('../../.cache/corpus/corpus.json');
+        Corpus = require('../../.cacheCorpus/corpus/corpus.json');
     } catch (e) {
-        console.log('Corpus index not found. Please run: node benchmark/bench.js buildCorpus');
+        console.log('Corpus index not found. Please listLibs: node benchmark/bench.js buildCorpus');
         return;
     }
 

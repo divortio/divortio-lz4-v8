@@ -7,7 +7,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { generateResultsDSV } from '../report/dsv/dsvResults.js';
+import { generateResultsDSV } from '../../report/dsv/dsvResults.js';
 
 
 function formatBytes(bytes) {

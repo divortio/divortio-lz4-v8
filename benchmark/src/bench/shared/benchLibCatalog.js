@@ -10,7 +10,7 @@ import { NodeJSLibs } from '../../libraries/libs/libs.nodeJS.js';
 import { V8WASMLibs } from '../../libraries/libs/libs.v8WASM.js';
 
 /**
- * Returns a flat list of all libraries with metadata.
+ * Returns a flat listCorpora of all libraries with metadata.
  * @returns {Array<{name: string, rawName: string, object: object, env: string, lang: string}>}
  */
 export function getAllLibraries() {
@@ -72,6 +72,7 @@ export function filterLibraries(criteria = {}) {
         const normLib = normalize(libEnv);
         const normFilter = normalize(filterEnv);
         if (normFilter === 'nodejs') return normLib === 'node';
+        if (normFilter === 'browser') return normLib === 'v8';
         return normLib.includes(normFilter);
     };
 

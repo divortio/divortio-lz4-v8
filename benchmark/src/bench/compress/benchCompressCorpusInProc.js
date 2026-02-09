@@ -4,9 +4,9 @@
  * Benchmarks compression for all files in a named corpus across multiple libraries.
  */
 
-import { Corpus } from '../../corpus/corpus.js';
-import { CorpusFile } from '../../inputs/corpusFile.js';
-import { findCorpusKey } from '../../inputs/inputUtils.js';
+import { Corpus } from '../../input/corpus/corpus.js';
+import { CorpusFile } from '../../input/corpusFile.js';
+import { findCorpusKey } from '../../input/findCorpus.js';
 import { BenchCompressFilesInProc } from './benchCompressFilesInProc.js';
 
 export class BenchCompressCorpusInProc {

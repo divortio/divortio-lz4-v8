@@ -1,31 +1,32 @@
 /**
  * benchmark/src/bench/shared/benchConfig.js
  * 
- * Master configuration for a benchmark run.
+ * Master configuration for a benchmark listLibs.
  * Aggregates Libraries, Inputs, and Runtime Settings.
  */
 
 import { BenchConfigLibs } from './benchConfigLibs.js';
 import { BenchConfigInputs } from './benchConfigInputs.js';
 
+
 export class BenchConfig {
     /**
      * @param {BenchConfigLibs|Array} [libs]
      * @param {BenchConfigInputs|Array} [inputs]
-     * @param {number} [samples=5]
-     * @param {number} [warmups=2]
-     * @param {object} [misc={}]
+     * @param {number} [samples=10]
+     * @param {number} [warmups=5]
+     * @param {object} [options={}]
      */
-    constructor(libs, inputs, samples = 5, warmups = 2, misc = {}) {
+    constructor(libs, inputs, samples = 5, warmups = 2, options = {}) {
         this.libs = libs instanceof BenchConfigLibs ? libs : new BenchConfigLibs(libs);
         this.inputs = inputs instanceof BenchConfigInputs ? inputs : new BenchConfigInputs(inputs);
         this.samples = samples;
         this.warmups = warmups;
-        this.misc = misc;
+        this.options = options;
     }
 
     /**
-     * @returns {object} Simple object representation for JSON.
+     * @returns {{libs: string[], inputs: string[], samples: number, warmups: number, options: Object}} Simple object representation for JSON.
      */
     toJSON() {
         return {
@@ -33,7 +34,7 @@ export class BenchConfig {
             inputs: this.inputs.getFileNames(),
             samples: this.samples,
             warmups: this.warmups,
-            misc: this.misc
+            options: this.options
         };
     }
     /**
@@ -82,7 +83,7 @@ export class BenchConfig {
         parts.push(`--warmups ${this.warmups}`);
 
         // Misc
-        for (const [key, val] of Object.entries(this.misc)) {
+        for (const [key, val] of Object.entries(this.options)) {
             parts.push(`--${key} ${val}`);
         }
 

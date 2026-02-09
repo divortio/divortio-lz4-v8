@@ -1,31 +1,28 @@
 /**
- * benchmark/src/cli/cliCompress.js
+ * benchmark/src/cli/cliDecompress.js
  * 
- * Handler for the 'compress' command.
+ * Handler for the 'decompress' command.
  */
 
 import path from 'path';
-import { BenchConfig } from '../bench/shared/benchConfig.js';
-import { BenchConfigLibs } from '../bench/shared/benchConfigLibs.js';
-import { BenchConfigInputs } from '../bench/shared/benchConfigInputs.js';
-import { BenchRun } from '../bench/shared/benchRun.js';
-import * as cliMarkdown from './cliMarkdown.js';
-import * as cliDSV from './cliDSV.js';
-import * as cliJSON from './cliJSON.js';
-import { resolveOutputConfig } from './cliOutput.js';
-import { logResults } from './cliLog.js';
-import { filterLibraries } from '../bench/shared/benchLibCatalog.js';
+import { BenchConfig } from '../../../bench/shared/benchConfig.js';
+import { BenchConfigLibs } from '../../../bench/shared/benchConfigLibs.js';
+import { BenchConfigInputs } from '../../../bench/shared/benchConfigInputs.js';
+import { BenchRun } from '../../../bench/shared/benchRun.js';
+import * as cliMarkdown from '../../output/cliMarkdown.js';
+import * as cliDSV from '../../output/cliDSV.js';
+import * as cliJSON from '../../output/cliJSON.js';
+import { resolveOutputConfig } from '../../output/cliOutput.js';
+import { logResults } from '../../output/cliLog.js';
+import { filterLibraries } from '../../../bench/shared/benchLibCatalog.js';
 
 export async function run(args) {
-    // Combine explicit libraries with filtered libraries
     if (args.filterEnvironment || args.filterLanguage) {
         const matched = filterLibraries({
             env: args.filterEnvironment,
             lang: args.filterLanguage
         });
-
         if (matched.length > 0) {
-            // Deduplicate and merge
             const existing = new Set(args.libraryNames);
             let addedCount = 0;
             for (const lib of matched) {
@@ -35,11 +32,7 @@ export async function run(args) {
                     addedCount++;
                 }
             }
-            if (addedCount > 0) {
-                console.log(`Added ${addedCount} libraries from filters (Env: ${args.filterEnvironment}, Lang: ${args.filterLanguage})`);
-            }
-        } else {
-            console.log(`No additional libraries matched filters (Env: ${args.filterEnvironment}, Lang: ${args.filterLanguage})`);
+            if (addedCount > 0) console.log(`Added ${addedCount} libraries from filters.`);
         }
     }
 
@@ -47,29 +40,21 @@ export async function run(args) {
         console.error('Error: At least one library must be specified (-l) or matched via filters.');
         process.exit(1);
     }
-
-    // Check if input or corpus is provided
     if (args.inputNames.length === 0 && args.corpusNames.length === 0) {
         console.error('Error: At least one input (-i) or corpus (-c) must be specified.');
         process.exit(1);
     }
 
-    // 1. Configure
     const libs = new BenchConfigLibs(args.libraryNames);
     const inputs = new BenchConfigInputs(args.inputNames, args.corpusNames);
     const config = new BenchConfig(libs, inputs, args.samples, args.warmups);
 
-    // 2. Prepare Runner
     const runner = new BenchRun(config);
-    console.log(`Running Compression Benchmark...`);
-    console.log(`Libraries: ${args.libraryNames.join(', ')}`);
+    console.log(`Running Decompression Benchmark...`);
 
-    // 3. Execute
     try {
-        const metrics = await runner.execute('compress');
-        console.log('Benchmark complete.');
-
-        // 4. Report
+        const metrics = await runner.execute('decompress');
+        console.log('Benchmark complete.'); // 4. Report
         logResults(metrics, args);
         const outConfig = resolveOutputConfig(args);
 

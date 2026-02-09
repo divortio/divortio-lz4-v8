@@ -1,20 +1,20 @@
 /**
- * benchmark/src/cli/cliDecompress.js
+ * benchmark/src/cli/cliRoundtrip.js
  * 
- * Handler for the 'decompress' command.
+ * Handler for the 'roundtrip' command.
  */
 
 import path from 'path';
-import { BenchConfig } from '../bench/shared/benchConfig.js';
-import { BenchConfigLibs } from '../bench/shared/benchConfigLibs.js';
-import { BenchConfigInputs } from '../bench/shared/benchConfigInputs.js';
-import { BenchRun } from '../bench/shared/benchRun.js';
-import * as cliMarkdown from './cliMarkdown.js';
-import * as cliDSV from './cliDSV.js';
-import * as cliJSON from './cliJSON.js';
-import { resolveOutputConfig } from './cliOutput.js';
-import { logResults } from './cliLog.js';
-import { filterLibraries } from '../bench/shared/benchLibCatalog.js';
+import { BenchConfig } from '../../../bench/shared/benchConfig.js';
+import { BenchConfigLibs } from '../../../bench/shared/benchConfigLibs.js';
+import { BenchConfigInputs } from '../../../bench/shared/benchConfigInputs.js';
+import { BenchRun } from '../../../bench/shared/benchRun.js';
+import * as cliMarkdown from '../../output/cliMarkdown.js';
+import * as cliDSV from '../../output/cliDSV.js';
+import * as cliJSON from '../../output/cliJSON.js';
+import { resolveOutputConfig } from '../../output/cliOutput.js';
+import { logResults } from '../../output/cliLog.js';
+import { filterLibraries } from '../../../bench/shared/benchLibCatalog.js';
 
 export async function run(args) {
     if (args.filterEnvironment || args.filterLanguage) {
@@ -50,11 +50,11 @@ export async function run(args) {
     const config = new BenchConfig(libs, inputs, args.samples, args.warmups);
 
     const runner = new BenchRun(config);
-    console.log(`Running Decompression Benchmark...`);
+    console.log(`Running Roundtrip Benchmark...`);
 
     try {
-        const metrics = await runner.execute('decompress');
-        console.log('Benchmark complete.'); // 4. Report
+        const metrics = await runner.execute('roundtrip');
+        console.log('Benchmark complete.');
         logResults(metrics, args);
         const outConfig = resolveOutputConfig(args);
 

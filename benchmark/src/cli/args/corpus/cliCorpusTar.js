@@ -4,9 +4,14 @@
  * Logic to resolve corpus references ending in .tar or .all to a CorpusTar input.
  */
 
-import { CorpusTar } from '../inputs/corpusTar.js';
-import { CorpusCatalog } from '../corpus/catalog/corpusCatalog.js';
+import {CorpusTar} from "../../../input/file/corpusTar.js";
+import {CorpusCatalog} from "../../../input/corpora/corpusCatalog.js";
 
+/**
+ *
+ * @param rawName {string}
+ * @returns {CorpusTar|null}
+ */
 export function resolveCorpusTar(rawName) {
     if (!rawName) return null;
     const lower = rawName.toLowerCase();

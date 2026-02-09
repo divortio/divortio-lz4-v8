@@ -48,7 +48,7 @@ export function showHelp(command) {
     return;
   }
 
-  if (command === 'list') {
+  if (command === 'listCorpora') {
     console.log(`
   Usage: node benchmark/bench.js list <type> [options]
 
