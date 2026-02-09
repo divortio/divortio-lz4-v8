@@ -25,6 +25,7 @@ export function showHelp(command) {
     -o, --output <file>       Specify output filename. Defaults to <input>.lz4.
     -f, --force               Force overwrite of output file if it exists.
     -k, --keep                Keep input file (default).
+    --stream                  Use streaming mode (low memory) for large files.
     --rm                      Delete input file after successful compression.
     -v, --verbose             Enable verbose logging (compression ratio, time).
 
@@ -56,6 +57,7 @@ export function showHelp(command) {
     -o, --output <file>       Specify output filename. Defaults to input without .lz4 extension.
     -f, --force               Force overwrite of output file if it exists.
     -k, --keep                Keep input file (default).
+    --stream                  Use streaming mode (low memory) for large files.
     --rm                      Delete input file after successful decompression.
     -v, --verbose             Enable verbose logging.
 

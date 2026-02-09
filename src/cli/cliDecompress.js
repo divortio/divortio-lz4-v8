@@ -10,6 +10,8 @@ import path from 'path';
 import { LZ4 } from '../lz4.js';
 import { CliDecompressResults } from './cliDecompressResults.js';
 import { writeLog } from './cliLog.js';
+import { pipeline } from 'stream/promises';
+import { createReadStream, createWriteStream } from 'fs';
 import { formatBytes, formatDuration, formatThroughput, formatRatio } from './cliUtils.js';
 
 /**
@@ -118,6 +120,100 @@ export function run(config) {
 
     } catch (err) {
         console.error("Decompression Failed:", err.message);
+        process.exit(1);
+    }
+}
+
+/**
+ * Executes the decompression command using Streams.
+ * @param {import('./cliConfig.js').CLIConfig} config - The CLI configuration object.
+ */
+export async function runStream(config) {
+    if (config.log) config.verbose = true;
+
+    if (!config.input) {
+        console.error("Error: Input file required.");
+        process.exit(1);
+    }
+    if (!fs.existsSync(config.input)) {
+        console.error(`Error: Input file '${config.input}' not found.`);
+        process.exit(1);
+    }
+    if (fs.existsSync(config.output) && !config.force) {
+        console.error(`Error: Output file '${config.output}' already exists. Use -f to overwrite.`);
+        process.exit(1);
+    }
+
+    // Load Dictionary
+    let dict = null;
+    if (config.dictionary) {
+        if (fs.existsSync(config.dictionary)) {
+            const rawDict = fs.readFileSync(config.dictionary);
+            dict = new LZ4Dictionary(rawDict);
+        } else {
+            console.error(`Error: Dictionary file '${config.dictionary}' not found.`);
+            process.exit(1);
+        }
+    }
+
+    try {
+        const results = new CliDecompressResults();
+        results.setCommand(process.argv.slice(2));
+        results.start();
+
+        const absInput = path.resolve(config.input);
+        const absOutput = path.resolve(config.output);
+        const inputStats = fs.statSync(config.input);
+        const inputSize = inputStats.size;
+
+        // Streams
+        const source = createReadStream(config.input);
+        const transform = LZ4.createDecompressStream(dict, config.verifyChecksum);
+        const dest = createWriteStream(config.output);
+
+        if (config.verbose) console.log(`Streaming decompression: ${config.input} -> ${config.output}`);
+
+        const tStart = performance.now();
+
+        await pipeline(source, transform, dest);
+
+        const tEnd = performance.now();
+        const duration = tEnd - tStart;
+
+        // Gather Stats
+        const outputStats = fs.statSync(config.output);
+        const outputSize = outputStats.size;
+
+        results.recordInput(absInput, inputSize);
+        results.recordRead(inputSize, duration);
+        results.recordDecompress(inputSize, outputSize, duration);
+        results.recordWrite(outputSize, duration);
+        results.recordOutput(absOutput, outputSize);
+
+        results.end();
+
+        const outputObj = results.toJSON();
+
+        if (config.json) {
+            console.log(JSON.stringify(outputObj));
+        } else if (config.verbose) {
+            console.log(`Stream Decompression Completed in ${outputObj.processed.durationH}`);
+            console.log(`Input: ${formatBytes(inputSize)}`);
+            console.log(`Output: ${formatBytes(outputSize)}`);
+        }
+
+        if (config.log) {
+            const logResult = writeLog(config, outputObj);
+            if (logResult) console.log(`Log: ${logResult.path}`);
+        }
+
+        if (!config.keep) {
+            fs.unlinkSync(config.input);
+            if (config.verbose && !config.json) console.log(`Deleted input file.`);
+        }
+
+    } catch (err) {
+        console.error("Stream Decompression Failed:", err.message);
         process.exit(1);
     }
 }

@@ -118,6 +118,10 @@ export function parseArgs(rawArgs) {
                 options.verifyChecksum = true;
                 break;
 
+            case '--stream':
+                options.useStream = true;
+                break;
+
             // Positional (Input)
             default:
                 if (!arg.startsWith('-')) {

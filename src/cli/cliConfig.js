@@ -118,6 +118,12 @@ export class CLIConfig {
          */
         this.isHelp = !!options.isHelp;
 
+        /**
+         * Whether to use streaming mode.
+         * @type {boolean}
+         */
+        this.useStream = !!options.useStream;
+
         this._resolveDefaults();
     }
 
